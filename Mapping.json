@@ -1,0 +1,57 @@
+{
+    "PnL": {
+        "mapping_name": "PNL",
+        "type": "Actuals",
+        "category": "sum",
+        "part": "Financial",
+        "color_grading": "green"
+    },
+
+    "Revenue": {
+        "mapping_name": "Revenue",
+        "type": "Actuals",
+        "category": "sum",
+        "part": "Financial",
+        "color_grading": "green"
+    },
+
+    "Cost": {
+        "mapping_name": "Cost",
+        "type": "Actuals",
+        "category": "sum",
+        "part": "Financial",
+        "color_grading": "green"
+    },
+
+    "Assets": {
+        "mapping_name": "Assets",
+        "type": "Previous",
+        "category": "sum",
+        "part": "Balance Sheet",
+        "color_grading": "light_grey"
+    },
+
+    "Exposure": {
+        "mapping_name": "Exposure",
+        "type": "Budget",
+        "category": "sum",
+        "part": "Risk",
+        "color_grading": "dark_grey"
+    },
+
+    "Cost_Ratio": {
+        "mapping_name": "Cost_Ratio",
+        "type": "Budget",
+        "category": "percentage",
+        "part": "Risk",
+        "color_grading": "dark_grey"
+    },
+    
+    "Margin":{
+        "mapping_name": "Margin",
+        "type": "Budget",
+        "category": "percentage",
+        "part": "Risk",
+        "color_grading": "dark_grey"
+    }
+}
