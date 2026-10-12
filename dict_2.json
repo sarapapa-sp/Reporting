@@ -1,0 +1,484 @@
+{
+    "root_id": 0,
+    "root_value": "Global Markets Report",
+    "values": {
+        "PnL": 1500,
+        "Revenue": 10000,
+        "Cost": 2500,
+        "Assets": 50000,
+        "Exposure": 20000,
+        "Margin": 15.0,
+        "Cost_Ratio": 2555.0,
+        "Exposure_Ratio": 40.0
+    },
+    "child": [
+        {
+            "root_id": 1,
+            "root_name": "Region",
+            "root_value": "APAC",
+            "values": {
+                "PnL": 500,
+                "Revenue": 3000,
+                "Cost": 700,
+                "Assets": 15000,
+                "Exposure": 6000,
+                "Margin": 16.67,
+                "Cost_Ratio": 23.33,
+                "Exposure_Ratio": 40.0
+            },
+            "child": [
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "Asia",
+                    "values": {
+                        "PnL": 300,
+                        "Revenue": 1800,
+                        "Cost": 400,
+                        "Assets": 9000,
+                        "Exposure": 3500,
+                        "Margin": 16.67,
+                        "Cost_Ratio": 22.22,
+                        "Exposure_Ratio": 38.89
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "Asia Desk",
+                            "values": {
+                                "PnL": 300,
+                                "Revenue": 1800,
+                                "Cost": 400,
+                                "Assets": 9000,
+                                "Exposure": 3500,
+                                "Margin": 16.67,
+                                "Cost_Ratio": 22.22,
+                                "Exposure_Ratio": 38.89
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "Asia Portfolio",
+                                    "values": {
+                                        "PnL": 300,
+                                        "Revenue": 1800,
+                                        "Cost": 400,
+                                        "Assets": 9000,
+                                        "Exposure": 3500,
+                                        "Margin": 16.67,
+                                        "Cost_Ratio": 22.22,
+                                        "Exposure_Ratio": 38.89
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "Japan",
+                    "values": {
+                        "PnL": 200,
+                        "Revenue": 1200,
+                        "Cost": 300,
+                        "Assets": 6000,
+                        "Exposure": 2500,
+                        "Margin": 16.67,
+                        "Cost_Ratio": 25.0,
+                        "Exposure_Ratio": 41.67
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "Japan Desk",
+                            "values": {
+                                "PnL": 200,
+                                "Revenue": 1200,
+                                "Cost": 300,
+                                "Assets": 6000,
+                                "Exposure": 2500,
+                                "Margin": 16.67,
+                                "Cost_Ratio": 25.0,
+                                "Exposure_Ratio": 41.67
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "Japan Portfolio",
+                                    "values": {
+                                        "PnL": 200,
+                                        "Revenue": 1200,
+                                        "Cost": 300,
+                                        "Assets": 6000,
+                                        "Exposure": 2500,
+                                        "Margin": 16.67,
+                                        "Cost_Ratio": 25.0,
+                                        "Exposure_Ratio": 41.67
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "root_id": 1,
+            "root_name": "Region",
+            "root_value": "Europe",
+            "values": {
+                "PnL": 400,
+                "Revenue": 2800,
+                "Cost": 800,
+                "Assets": 13000,
+                "Exposure": 5500,
+                "Margin": 14.29,
+                "Cost_Ratio": 28.57,
+                "Exposure_Ratio": 42.31
+            },
+            "child": [
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "UK",
+                    "values": {
+                        "PnL": 250,
+                        "Revenue": 1700,
+                        "Cost": 450,
+                        "Assets": 8000,
+                        "Exposure": 3300,
+                        "Margin": 14.71,
+                        "Cost_Ratio": 26.47,
+                        "Exposure_Ratio": 42.94
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "UK Desk",
+                            "values": {
+                                "PnL": 250,
+                                "Revenue": 1700,
+                                "Cost": 450,
+                                "Assets": 8000,
+                                "Exposure": 3300,
+                                "Margin": 14.71,
+                                "Cost_Ratio": 26.47,
+                                "Exposure_Ratio": 42.94
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "UK Portfolio",
+                                    "values": {
+                                        "PnL": 250,
+                                        "Revenue": 1700,
+                                        "Cost": 450,
+                                        "Assets": 8000,
+                                        "Exposure": 3300,
+                                        "Margin": 14.71,
+                                        "Cost_Ratio": 26.47,
+                                        "Exposure_Ratio": 42.94
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "Germany",
+                    "values": {
+                        "PnL": 150,
+                        "Revenue": 1100,
+                        "Cost": 350,
+                        "Assets": 5000,
+                        "Exposure": 2200,
+                        "Margin": 13.64,
+                        "Cost_Ratio": 31.82,
+                        "Exposure_Ratio": 44.0
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "Germany Desk",
+                            "values": {
+                                "PnL": 150,
+                                "Revenue": 1100,
+                                "Cost": 350,
+                                "Assets": 5000,
+                                "Exposure": 2200,
+                                "Margin": 13.64,
+                                "Cost_Ratio": 31.82,
+                                "Exposure_Ratio": 44.0
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "Germany Portfolio",
+                                    "values": {
+                                        "PnL": 150,
+                                        "Revenue": 1100,
+                                        "Cost": 350,
+                                        "Assets": 5000,
+                                        "Exposure": 2200,
+                                        "Margin": 13.64,
+                                        "Cost_Ratio": 31.82,
+                                        "Exposure_Ratio": 44.0
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "root_id": 1,
+            "root_name": "Region",
+            "root_value": "Americas",
+            "values": {
+                "PnL": 350,
+                "Revenue": 2600,
+                "Cost": 600,
+                "Assets": 12000,
+                "Exposure": 5000,
+                "Margin": 13.46,
+                "Cost_Ratio": 23.08,
+                "Exposure_Ratio": 41.67
+            },
+            "child": [
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "US",
+                    "values": {
+                        "PnL": 250,
+                        "Revenue": 1900,
+                        "Cost": 400,
+                        "Assets": 8500,
+                        "Exposure": 3500,
+                        "Margin": 13.16,
+                        "Cost_Ratio": 21.05,
+                        "Exposure_Ratio": 41.18
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "US Desk",
+                            "values": {
+                                "PnL": 250,
+                                "Revenue": 1900,
+                                "Cost": 400,
+                                "Assets": 8500,
+                                "Exposure": 3500,
+                                "Margin": 13.16,
+                                "Cost_Ratio": 21.05,
+                                "Exposure_Ratio": 41.18
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "US Portfolio",
+                                    "values": {
+                                        "PnL": 250,
+                                        "Revenue": 1900,
+                                        "Cost": 400,
+                                        "Assets": 8500,
+                                        "Exposure": 3500,
+                                        "Margin": 13.16,
+                                        "Cost_Ratio": 21.05,
+                                        "Exposure_Ratio": 41.18
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "Canada",
+                    "values": {
+                        "PnL": 100,
+                        "Revenue": 700,
+                        "Cost": 200,
+                        "Assets": 3500,
+                        "Exposure": 1500,
+                        "Margin": 14.29,
+                        "Cost_Ratio": 28.57,
+                        "Exposure_Ratio": 42.86
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "Canada Desk",
+                            "values": {
+                                "PnL": 100,
+                                "Revenue": 700,
+                                "Cost": 200,
+                                "Assets": 3500,
+                                "Exposure": 1500,
+                                "Margin": 14.29,
+                                "Cost_Ratio": 28.57,
+                                "Exposure_Ratio": 42.86
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "Canada Portfolio",
+                                    "values": {
+                                        "PnL": 100,
+                                        "Revenue": 700,
+                                        "Cost": 200,
+                                        "Assets": 3500,
+                                        "Exposure": 1500,
+                                        "Margin": 14.29,
+                                        "Cost_Ratio": 28.57,
+                                        "Exposure_Ratio": 42.86
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "root_id": 1,
+            "root_name": "Region",
+            "root_value": "Other",
+            "values": {
+                "PnL": 250,
+                "Revenue": 1600,
+                "Cost": 400,
+                "Assets": 10000,
+                "Exposure": 3500,
+                "Margin": 15.63,
+                "Cost_Ratio": 25.0,
+                "Exposure_Ratio": 35.0
+            },
+            "child": [
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "HKG",
+                    "values": {
+                        "PnL": 100,
+                        "Revenue": 600,
+                        "Cost": 150,
+                        "Assets": 4000,
+                        "Exposure": 1500,
+                        "Margin": 16.67,
+                        "Cost_Ratio": 25.0,
+                        "Exposure_Ratio": 37.5
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "HKG Desk",
+                            "values": {
+                                "PnL": 100,
+                                "Revenue": 600,
+                                "Cost": 150,
+                                "Assets": 4000,
+                                "Exposure": 1500,
+                                "Margin": 16.67,
+                                "Cost_Ratio": 25.0,
+                                "Exposure_Ratio": 37.5
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "HKG Portfolio",
+                                    "values": {
+                                        "PnL": 100,
+                                        "Revenue": 600,
+                                        "Cost": 150,
+                                        "Assets": 4000,
+                                        "Exposure": 1500,
+                                        "Margin": 16.67,
+                                        "Cost_Ratio": 25.0,
+                                        "Exposure_Ratio": 37.5
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "root_id": 2,
+                    "root_name": "Subregion",
+                    "root_value": "Australia",
+                    "values": {
+                        "PnL": 150,
+                        "Revenue": 1000,
+                        "Cost": 250,
+                        "Assets": 6000,
+                        "Exposure": 2000,
+                        "Margin": 15.0,
+                        "Cost_Ratio": 25.0,
+                        "Exposure_Ratio": 33.33
+                    },
+                    "child": [
+                        {
+                            "root_id": 3,
+                            "root_name": "Desk",
+                            "root_value": "Australia Desk",
+                            "values": {
+                                "PnL": 150,
+                                "Revenue": 1000,
+                                "Cost": 250,
+                                "Assets": 6000,
+                                "Exposure": 2000,
+                                "Margin": 15.0,
+                                "Cost_Ratio": 25.0,
+                                "Exposure_Ratio": 33.33
+                            },
+                            "child": [
+                                {
+                                    "root_id": 4,
+                                    "root_name": "Portfolio",
+                                    "root_value": "Australia Portfolio",
+                                    "values": {
+                                        "PnL": 150,
+                                        "Revenue": 1000,
+                                        "Cost": 250,
+                                        "Assets": 6000,
+                                        "Exposure": 2000,
+                                        "Margin": 15.0,
+                                        "Cost_Ratio": 25.0,
+                                        "Exposure_Ratio": 33.33
+                                    },
+                                    "child": []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
