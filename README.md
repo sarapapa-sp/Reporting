@@ -1,13 +1,13 @@
 # Reporting
-Automated Reporting
+Automated Reporting<br>
 
-File Versions:
-Generator.py - Version 1 \n
-Reporting_2.py - Version 2 with enhanced Collapsing features \n
-Reporting_3.py - Version 3 with addition of Purple color \n
-
-
-Data files:
-Mapping.json - Column Mapping to generate the files
-dict.json - Parsed PNL Verion
-dict_2.json - Parsed PNL version with 4 node value.
+File Versions:<br>
+Generator.py - Version 1 <br>
+Reporting_2.py - Version 2 with enhanced Collapsing features <br>
+Reporting_3.py - Version 3 with addition of Purple color <br>
+<br>
+<br>
+Data files:<br>
+Mapping.json - Column Mapping to generate the files<br>
+dict.json - Parsed PNL Verion<br>
+dict_2.json - Parsed PNL version with 4 node value.<br>
