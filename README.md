@@ -2,8 +2,9 @@
 Automated Reporting
 
 File Versions:
-Generator.py - Version 1
-Reporting_2.py - Version 2 with enhanced Collapsing features
+Generator.py - Version 1 \n
+Reporting_2.py - Version 2 with enhanced Collapsing features \n
+Reporting_3.py - Version 3 with addition of Purple color \n
 
 
 Data files:
