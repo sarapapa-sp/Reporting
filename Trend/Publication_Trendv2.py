@@ -19,6 +19,9 @@ import pandas as pd
 class ReportTrendAnalyzer:
     """Calculate report/indicator trend metrics for a selected data version."""
 
+    EXCEPTION_COBS = frozenset({"2026-01-01"})
+    TREND_PERIODS = ("n_business_days", "current_quarter", "current_year", "all")
+
     REQUIRED_COLUMNS = (
         "cob_date", "bus_day", "month", "version", "report_name",
         "indicator", "daily", "mtd", "ytd",
@@ -97,7 +100,7 @@ class ReportTrendAnalyzer:
         end_month = pd.Timestamp(as_of_date).to_period("M")
         months = [end_month - offset for offset in range(months_to_load - 1, -1, -1)]
         paths = [self.generate_file_path(month.start_time) for month in months]
-        self.logger.info("Requested history months=%s | workbooks=%s", months_to_load, [str(p) for p in paths])
+        self.logger.info("Requested history months=%s | workbooks=%s", months_to_load, [p.name for p in paths])
         return paths
 
     def load_daily_data(self, as_of_date: str | pd.Timestamp, months_to_load: int = 3) -> pd.DataFrame:
@@ -108,12 +111,12 @@ class ReportTrendAnalyzer:
             frames: list[pd.DataFrame] = []
             current_file = self.generate_file_path(as_of)
             if not current_file.is_file():
-                raise FileNotFoundError(f"Current-month workbook not found: {current_file}")
+                raise FileNotFoundError(f"Current-month workbook not found: {current_file.name}")
             for path in self.get_history_paths(as_of, months_to_load):
                 if not path.is_file():
-                    self.logger.warning("Historical workbook missing; skipping: %s", path)
+                    self.logger.warning("Historical workbook missing; skipping: %s", path.name)
                     continue
-                self.logger.info("Reading workbook: %s", path)
+                self.logger.info("Reading workbook: %s", path.name)
                 data = pd.read_excel(
                     path, engine="openpyxl",
                     usecols=lambda name: str(name).strip().lower() in self.REQUIRED_COLUMNS,
@@ -121,14 +124,19 @@ class ReportTrendAnalyzer:
                 data.columns = data.columns.astype(str).str.strip().str.lower()
                 missing = set(self.REQUIRED_COLUMNS) - set(data.columns)
                 if missing:
-                    raise ValueError(f"Missing columns in {path}: {sorted(missing)}")
+                    raise ValueError(f"Missing columns in {path.name}: {sorted(missing)}")
                 data = data.loc[:, self.REQUIRED_COLUMNS].copy()
                 selected = data["version"].astype("string").str.strip().str.casefold() == self.version.casefold()
                 data = data.loc[selected.fillna(False)].copy()
-                self.logger.info("Version-matched records in %s: %d", path.name, len(data))
+                data["cob_date"] = pd.to_datetime(data["cob_date"], errors="coerce").dt.normalize()
+                matched_dates = sorted(data["cob_date"].dropna().dt.strftime("%Y-%m-%d").unique().tolist())
+                self.logger.info(
+                    "Version filter | workbook=%s | version=%s | matched records=%d | unique reports=%d | unique COB dates=%d | COBs=%s",
+                    path.name, self.version, len(data), data["report_name"].dropna().nunique(),
+                    len(matched_dates), matched_dates,
+                )
                 if data.empty:
                     continue
-                data["cob_date"] = pd.to_datetime(data["cob_date"], errors="coerce").dt.normalize()
                 for col in ("daily", "mtd", "ytd", "bus_day", "month"):
                     data[col] = pd.to_numeric(data[col], errors="coerce")
                 for col in ("report_name", "indicator"):
@@ -136,10 +144,10 @@ class ReportTrendAnalyzer:
                 invalid = data[list(self.REQUIRED_COLUMNS)].isna().any(axis=1)
                 invalid |= data["report_name"].eq("") | data["indicator"].eq("")
                 if invalid.any():
-                    raise ValueError(f"Found {int(invalid.sum())} invalid Daily rows in {path}")
+                    raise ValueError(f"Found {int(invalid.sum())} invalid {self.version} rows in {path.name}")
                 wrong_month = data["month"].ne(data["cob_date"].dt.month)
                 if wrong_month.any():
-                    raise ValueError(f"Month field does not match cob_date in {path}")
+                    raise ValueError(f"Month field does not match cob_date in {path.name}")
                 data = data.loc[data["cob_date"] <= as_of]
                 self.logger.info("Usable rows %s: %d | COBs: %s", path.name, len(data), sorted(data["cob_date"].dt.strftime("%Y-%m-%d").unique().tolist()))
                 if not data.empty:
@@ -154,10 +162,135 @@ class ReportTrendAnalyzer:
                 raise ValueError(f"Duplicate Daily rows for (date, report, indicator): {sample}")
             combined = combined.sort_values(["report_name", "indicator", "cob_date"]).reset_index(drop=True)
             self.logger.info("History loaded | records=%d | COBs=%s | combinations=%d", len(combined), sorted(combined["cob_date"].dt.strftime("%Y-%m-%d").unique().tolist()), combined.groupby(["report_name", "indicator"]).ngroups)
+            self.validate_cob_continuity(combined, as_of, months_to_load)
             return combined
         except Exception:
             self.logger.exception("Failed loading history for COB=%s", as_of.date())
             raise
+
+    def validate_cob_continuity(
+        self,
+        history: pd.DataFrame,
+        as_of_date: str | pd.Timestamp,
+        months_to_load: int | None = None,
+    ) -> None:
+        """Raise if any expected weekday COB is absent, except EXCEPTION_COBS.
+
+        Checks all dates in the requested month range (when supplied) and also
+        checks each report/indicator from its first observed date through as_of.
+        Uses Monday-Friday as the business calendar; add holidays to EXCEPTION_COBS.
+        """
+        as_of = pd.Timestamp(as_of_date).normalize()
+        self._ensure_logging(as_of)
+        exceptions = {pd.Timestamp(day).normalize() for day in self.EXCEPTION_COBS}
+        if months_to_load is not None:
+            if months_to_load < 1:
+                raise ValueError("months_to_load must be at least 1")
+            start = (as_of.to_period("M") - (months_to_load - 1)).start_time
+        else:
+            if history.empty:
+                raise ValueError("Cannot validate COB continuity: empty history")
+            start = pd.to_datetime(history["cob_date"]).min().normalize()
+        expected = pd.DatetimeIndex(pd.bdate_range(start, as_of)).normalize()
+        observed = set(pd.to_datetime(history["cob_date"]).dt.normalize())
+        missing = [day for day in expected if day not in observed]
+        exempted = [day for day in missing if day in exceptions]
+        unexpected = [day for day in missing if day not in exceptions]
+        fmt = lambda days: [day.strftime("%Y-%m-%d") for day in days]
+        self.logger.info(
+            "COB continuity | start=%s | end=%s | expected weekdays=%d | observed COBs=%s",
+            start.date(), as_of.date(), len(expected), fmt(sorted(observed)),
+        )
+        self.logger.info("Exception COBs configured: %s", sorted(self.EXCEPTION_COBS))
+        if exempted:
+            self.logger.warning("Missing COBs allowed by exception: %s", fmt(exempted))
+        if unexpected:
+            self.logger.error("Missing required COBs: %s", fmt(unexpected))
+            raise ValueError(f"Missing required COB dates: {', '.join(fmt(unexpected))}")
+
+        # A date present for one report must not mask a gap in another report.
+        # Permit report/indicator combinations to start later, but require
+        # continuity from their first appearance to the requested COB.
+        for (report, indicator), group in history.groupby(["report_name", "indicator"], sort=True):
+            group_dates = set(pd.to_datetime(group["cob_date"]).dt.normalize())
+            first_date = min(group_dates)
+            group_expected = pd.bdate_range(first_date, as_of)
+            group_missing = [day for day in group_expected if day not in group_dates]
+            group_exempted = [day for day in group_missing if day in exceptions]
+            group_unexpected = [day for day in group_missing if day not in exceptions]
+            if group_exempted:
+                self.logger.warning(
+                    "Report/indicator=%s/%s | allowed exception COBs=%s",
+                    report, indicator, fmt(group_exempted),
+                )
+            if group_unexpected:
+                self.logger.error(
+                    "Report/indicator=%s/%s | missing required COBs=%s",
+                    report, indicator, fmt(group_unexpected),
+                )
+                raise ValueError(
+                    f"Missing required COB dates for report={report}, indicator={indicator}: "
+                    + ", ".join(fmt(group_unexpected))
+                )
+        self.logger.info("COB continuity validation passed | requested COB=%s", as_of.date())
+
+    def select_previous_month_cob(
+        self,
+        current_cob: str | pd.Timestamp,
+    ) -> pd.Timestamp:
+        """Map a current COB to the prior month by centered business-day alignment.
+
+        Uses full Monday-Friday calendars excluding EXCEPTION_COBS, not just dates
+        already loaded this month. When current has more days, repeats the middle
+        previous-month COB; when previous has more, skips middle previous-month
+        COB(s). A stable mapping is therefore available even mid-month.
+        """
+        current = pd.Timestamp(current_cob).normalize()
+        self._ensure_logging(current)
+        if current.weekday() >= 5 or current.strftime("%Y-%m-%d") in self.EXCEPTION_COBS:
+            raise ValueError(f"Not an expected business COB: {current.date()}")
+        previous_period = current.to_period("M") - 1
+        exceptions = {pd.Timestamp(x).normalize() for x in self.EXCEPTION_COBS}
+
+        def monthly_days(period: pd.Period) -> list[pd.Timestamp]:
+            return [pd.Timestamp(d).normalize() for d in pd.bdate_range(period.start_time, period.end_time)
+                    if pd.Timestamp(d).normalize() not in exceptions]
+
+        current_days = monthly_days(current.to_period("M"))
+        previous_days = monthly_days(previous_period)
+        current_pos = current_days.index(current)
+        current_count, previous_count = len(current_days), len(previous_days)
+        if current_count >= previous_count:
+            # Insert repeated middle positions into the longer current calendar.
+            # Example: 22 current vs 21 previous: positions 11 and 12 (1-based)
+            # both match previous position 11.
+            extras = current_count - previous_count
+            insert_at = (previous_count + 1) // 2
+            prior_pos = current_pos if current_pos < insert_at else max(insert_at, current_pos - extras)
+        else:
+            # Drop surplus COBs from the middle of the longer previous calendar.
+            extras = previous_count - current_count
+            skip_at = (previous_count - extras) // 2
+            prior_pos = current_pos if current_pos < skip_at else current_pos + extras
+        prior_pos = max(0, min(prior_pos, previous_count - 1))
+        selected = previous_days[prior_pos]
+        adjustment = (
+            "repeat middle previous-month COB" if current_count > previous_count else
+            "skip middle previous-month COB(s)" if current_count < previous_count else
+            "one-to-one"
+        )
+        self.logger.info(
+            "Previous-month COB selection | current=%s (position=%d/%d) | previous=%s "
+            "(position=%d/%d) | adjustment=%s",
+            current.strftime("%Y-%m-%d"), current_pos + 1, current_count,
+            selected.strftime("%Y-%m-%d"), prior_pos + 1, previous_count, adjustment,
+        )
+        self.logger.info(
+            "COB alignment calendars | current month=%s | current COBs=%s | previous month=%s | previous COBs=%s",
+            current.to_period("M"), [x.strftime("%Y-%m-%d") for x in current_days],
+            previous_period, [x.strftime("%Y-%m-%d") for x in previous_days],
+        )
+        return selected
 
     @staticmethod
     def _difference(current: float, previous: float | None) -> float | None:
@@ -174,6 +307,8 @@ class ReportTrendAnalyzer:
         self._ensure_logging(as_of)
         self.logger.info("Trend calculation started | requested COB=%s | source rows=%d", as_of.date(), len(daily_data))
         try:
+            self.validate_cob_continuity(daily_data, as_of)
+
             rows: list[dict[str, Any]] = []
             for (report, indicator), group in daily_data.groupby(["report_name", "indicator"], sort=True):
                 group = group.sort_values("cob_date").reset_index(drop=True)
@@ -216,11 +351,15 @@ class ReportTrendAnalyzer:
                 mtd = float(latest["mtd"])
                 ytd = float(latest["ytd"])
                 latest_bus_day = latest["bus_day"]
-                previous_month = latest_dt.to_period("M") - 1
+                selected_previous_cob = self.select_previous_month_cob(latest_dt)
                 prior_month_match = earlier.loc[
-                    (earlier["cob_date"].dt.to_period("M") == previous_month)
-                    & (earlier["bus_day"] == latest_bus_day)
+                    earlier["cob_date"] == selected_previous_cob
                 ]
+                if prior_month_match.empty:
+                    self.logger.warning(
+                        "Selected previous-month COB is unavailable for report=%s | indicator=%s | COB=%s",
+                        report, indicator, selected_previous_cob.strftime("%Y-%m-%d"),
+                    )
                 last_year_match = earlier.loc[
                     (earlier["cob_date"].dt.year == latest_dt.year - 1)
                     & (earlier["cob_date"].dt.month == latest_dt.month)
@@ -247,6 +386,7 @@ class ReportTrendAnalyzer:
                     ),
                     "daily_slope_short": slope, "daily_trend_direction": direction,
                     "daily_anomaly_zscore": zscore, "daily_is_anomaly": anomaly,
+                    "previous_month_selected_cob": selected_previous_cob.strftime("%Y-%m-%d"),
                     "daily_previous_month_same_bus_day": prior_month_daily,
                     "daily_mom_change": self._difference(current, prior_month_daily),
                     "daily_mom_change_pct": self._percent_change(current, prior_month_daily),
@@ -297,6 +437,7 @@ class ReportTrendAnalyzer:
             if history is None:
                 history = self.load_daily_data(as_of, months_to_load)
             data = history.loc[history["cob_date"] <= as_of].copy()
+            self.validate_cob_continuity(data, as_of)
             dates = sorted(data["cob_date"].dropna().unique())[-n:]
             date_labels = [pd.Timestamp(d).strftime("%Y-%m-%d") for d in dates]
             self.logger.info("%s P&L | requested COB=%s | requested n=%s | selected COBs=%s", metric.upper(), as_of.date(), n, date_labels)
@@ -323,3 +464,164 @@ class ReportTrendAnalyzer:
 
     def get_previous_ytd_pnl(self, as_of_date: str | pd.Timestamp, n: int, months_to_load: int = 3, history: pd.DataFrame | None = None) -> pd.DataFrame:
         return self._historical_pnl(as_of_date, n, "ytd", months_to_load, history)
+
+
+    def period_start(self, as_of_date: str | pd.Timestamp, trend_period: str) -> pd.Timestamp:
+        """Return calendar start of a quarter or year (the COB is inclusive)."""
+        as_of = pd.Timestamp(as_of_date).normalize()
+        if trend_period == "current_quarter":
+            return as_of.to_period("Q").start_time.normalize()
+        if trend_period == "current_year":
+            return as_of.to_period("Y").start_time.normalize()
+        raise ValueError("trend_period must be current_quarter or current_year")
+
+    def required_months_to_load(
+        self, as_of_date: str | pd.Timestamp, trend_period: str,
+        months_to_load: int = 3,
+    ) -> int:
+        """Expand the workbook lookback to cover the full selected calendar period."""
+        if months_to_load < 1:
+            raise ValueError("months_to_load must be at least 1")
+        if trend_period not in self.TREND_PERIODS:
+            raise ValueError(f"trend_period must be one of {self.TREND_PERIODS}")
+        if trend_period == "n_business_days":
+            return months_to_load
+        start = self.period_start(as_of_date, "current_year" if trend_period == "all" else trend_period)
+        as_of = pd.Timestamp(as_of_date).normalize()
+        months_needed = (as_of.year - start.year) * 12 + as_of.month - start.month + 1
+        # Calendar-period modes intentionally load from their period start;
+        # loading earlier months would incorrectly require unrelated COBs.
+        return months_needed
+
+    def calculate_period_trend_parameters(
+        self,
+        history: pd.DataFrame,
+        as_of_date: str | pd.Timestamp,
+        trend_period: str = "current_quarter",
+        n: int = 5,
+    ) -> pd.DataFrame:
+        """Return a report/indicator trend for N COBs, QTD, or YTD.
+
+        Daily P&L is used for all aggregate statistics and regression.
+        The separate end-of-period MTD/YTD snapshots are not summed.
+        The latest COB is included, and exceptional COBs are excluded only
+        from the expected calendar (not from actual observed records).
+        """
+        if trend_period not in ("n_business_days", "current_quarter", "current_year"):
+            raise ValueError("Invalid period: use n_business_days, current_quarter or current_year")
+        if not isinstance(n, int) or isinstance(n, bool) or n < 1:
+            raise ValueError("n must be a positive integer")
+        as_of = pd.Timestamp(as_of_date).normalize()
+        self._ensure_logging(as_of)
+        data = history.loc[history["cob_date"] <= as_of].copy()
+        if data.empty:
+            raise ValueError("No history available for trend calculation")
+        # Also catch report/indicator gaps in the original loaded history.
+        self.validate_cob_continuity(data, as_of)
+        if trend_period == "n_business_days":
+            dates = sorted(pd.to_datetime(data["cob_date"]).unique())[-n:]
+            if len(dates) < n:
+                self.logger.warning("N-business-day trend requested %d COBs but only %d available", n, len(dates))
+            data = data.loc[data["cob_date"].isin(dates)].copy()
+            start = pd.Timestamp(dates[0]).normalize()
+        else:
+            start = self.period_start(as_of, trend_period)
+            data = data.loc[data["cob_date"] >= start].copy()
+            # A selected period is only valid when the entire period exists;
+            # the existing per-group validator allows late-introduced reports.
+            self.validate_cob_continuity(data, as_of, months_to_load=None)
+            expected = set(pd.bdate_range(start, as_of)) - {
+                pd.Timestamp(x).normalize() for x in self.EXCEPTION_COBS
+            }
+            observed = set(pd.to_datetime(data["cob_date"]).dt.normalize())
+            missing = sorted(expected - observed)
+            if missing:
+                labels = [x.strftime("%Y-%m-%d") for x in missing]
+                self.logger.error("%s period missing COBs: %s", trend_period, labels)
+                raise ValueError(f"Missing required {trend_period} COB dates: {labels}")
+        dates_used = sorted(data["cob_date"].dt.strftime("%Y-%m-%d").unique().tolist())
+        self.logger.info(
+            "Period trend selection | period=%s | n=%s | start=%s | end=%s | COB count=%s | selected COBs=%s",
+            trend_period, n, start.date(), as_of.date(), len(dates_used), dates_used,
+        )
+        if data.empty:
+            raise ValueError(f"No available records for trend_period={trend_period}")
+        result_rows = []
+        for (report, indicator), group in data.groupby(["report_name", "indicator"], sort=True):
+            group = group.sort_values("cob_date")
+            vals = group["daily"].to_numpy(dtype=float)
+            count = len(vals)
+            first, last = float(vals[0]), float(vals[-1])
+            slope = float(np.polyfit(np.arange(count), vals, 1)[0]) if count >= 3 else None
+            direction = (
+                "Insufficient history" if slope is None else
+                "Rising" if slope > 1e-10 else
+                "Falling" if slope < -1e-10 else "Flat"
+            )
+            std = float(vals.std(ddof=1)) if count >= 2 else None
+            # Z-score compares latest day to earlier daily observations in this period.
+            prior = vals[:-1]
+            zscore = None
+            is_anomaly = None
+            if len(prior) >= 5:
+                prior_std = float(prior.std(ddof=1))
+                prior_mean = float(prior.mean())
+                if prior_std > 0:
+                    zscore = float((last - prior_mean) / prior_std)
+                    is_anomaly = bool(abs(zscore) >= self.anomaly_z_threshold)
+                else:
+                    is_anomaly = bool(last != prior_mean)
+            period_dates = group["cob_date"].dt.strftime("%Y-%m-%d").tolist()
+            result_rows.append({
+                "report_name": str(report), "indicator": str(indicator), "version": self.version,
+                "trend_period": trend_period, "period_requested_start": start.strftime("%Y-%m-%d"),
+                "period_first_cob": period_dates[0], "period_last_cob": period_dates[-1],
+                "period_observations": count, "period_cobs": ", ".join(period_dates),
+                "daily_first": first, "daily_latest": last,
+                "daily_period_change": self._difference(last, first),
+                "daily_period_change_pct": self._percent_change(last, first),
+                "daily_period_sum": float(vals.sum()),
+                "daily_period_average": float(vals.mean()),
+                "daily_period_std": std, "daily_period_min": float(vals.min()),
+                "daily_period_max": float(vals.max()),
+                "daily_period_slope": slope, "daily_period_direction": direction,
+                "daily_period_anomaly_zscore": zscore,
+                "daily_period_is_anomaly": is_anomaly,
+                "mtd_first": float(group.iloc[0]["mtd"]),
+                "mtd_latest": float(group.iloc[-1]["mtd"]),
+                "ytd_first": float(group.iloc[0]["ytd"]),
+                "ytd_latest": float(group.iloc[-1]["ytd"]),
+            })
+            self.logger.info("Period trend | period=%s | report=%s | indicator=%s | COBs=%d | direction=%s",
+                             trend_period, report, indicator, count, direction)
+        results = pd.DataFrame(result_rows)
+        self.logger.info("Period trends complete | period=%s | combinations=%d", trend_period, len(results))
+        return results
+
+    def get_period_pnl(
+        self, as_of_date: str | pd.Timestamp, trend_period: str, metric: str = "daily",
+        months_to_load: int = 3, history: pd.DataFrame | None = None,
+    ) -> pd.DataFrame:
+        """Wide daily/MTD/YTD history from the quarter or year start through COB."""
+        if trend_period not in ("current_quarter", "current_year"):
+            raise ValueError("trend_period must be current_quarter or current_year")
+        if metric not in ("daily", "mtd", "ytd"):
+            raise ValueError("metric must be daily, mtd, or ytd")
+        as_of = pd.Timestamp(as_of_date).normalize()
+        self._ensure_logging(as_of)
+        if history is None:
+            lookback = self.required_months_to_load(as_of, trend_period, months_to_load)
+            history = self.load_daily_data(as_of, lookback)
+        # Reuse the strict period validity check before building the pivot.
+        self.calculate_period_trend_parameters(history, as_of, trend_period)
+        start = self.period_start(as_of, trend_period)
+        selected = history.loc[history["cob_date"].between(start, as_of),
+                               ["report_name", "indicator", "cob_date", metric]].copy()
+        date_columns = sorted(selected["cob_date"].dt.strftime("%Y-%m-%d").unique().tolist())
+        selected["cob_date"] = selected["cob_date"].dt.strftime("%Y-%m-%d")
+        output = selected.pivot(index=["report_name", "indicator"], columns="cob_date", values=metric)
+        output = output.reindex(columns=date_columns).reset_index()
+        output.columns.name = None
+        self.logger.info("Period P&L pivot | period=%s | metric=%s | selected COBs=%s | rows=%d",
+                         trend_period, metric, date_columns, len(output))
+        return output
