@@ -1,0 +1,2112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Build and understand the Reporting Trends dashboard from scratch.">
+<title>Build the Reporting Trends Dashboard</title>
+<style>
+:root{color-scheme:light;--navy:#102722;--green:#14604b;--paper:#f7f8f4;--white:#fff;--line:#d8e2da;--text:#202e28;--muted:#4a5d54;--mint:#dceee2;--warm:#fff0d6}
+*{box-sizing:border-box}
+html{scroll-padding-top:1rem}
+body{margin:0;color:var(--text);background:var(--paper);font:16px/1.66 system-ui,-apple-system,sans-serif}
+.hero{color:#f0f6ef;background:#132e27;padding:clamp(2rem,7vw,5.75rem) max(5vw,calc((100vw - 1160px)/2));border-bottom:6px solid #70be98}
+.kicker{margin:0 0 1rem;color:#a5e1bf;font-size:.78rem;font-weight:750;letter-spacing:.15em;text-transform:uppercase}
+h1,h2,h3{font-family:Georgia,serif;letter-spacing:-.025em;line-height:1.15}
+h1{margin:0;font-size:clamp(2.65rem,7vw,5rem);max-width:840px}
+.hero p:last-child{max-width:690px;margin:1.3rem 0 0;color:#d5e8dc;font-size:1.13rem}
+.layout{max-width:1160px;margin:auto;padding:2.1rem 1.4rem 4rem;display:grid;grid-template-columns:200px minmax(0,1fr);gap:clamp(1rem,5vw,4rem)}
+nav{position:sticky;align-self:start;top:1.4rem;border:1px solid var(--line);background:var(--white);border-radius:12px;padding:1rem}
+nav strong{display:block;padding:.25rem .45rem .55rem}
+nav a{display:block;padding:.38rem .45rem;text-decoration:none;color:var(--green);font-size:.9rem;border-radius:5px}
+nav a:hover,nav a:focus-visible{background:var(--mint)}
+section{padding:0 0 2rem;margin:0 0 2rem;border-bottom:1px solid var(--line)}
+section:last-child{border-bottom:0;margin-bottom:0}
+h2{margin:.15rem 0 .8rem;font-size:clamp(1.95rem,4.7vw,2.65rem)}
+h3{margin:1.45rem 0 .45rem;font-size:1.35rem}
+p{margin:.5rem 0 1rem}
+a{color:var(--green)}
+code{font: .89em ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+p code,td code,li code{color:#0e533d;background:#e8efe7;padding:.12rem .25rem;border-radius:4px}
+.module{padding:.9rem 1rem;background:var(--white);border:1px solid var(--line);border-radius:9px}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:1.1rem 0}
+.module strong{display:block;color:var(--green)}
+.module small{display:block;margin-top:.3rem;color:var(--muted);line-height:1.4}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:9px;margin:1rem 0;background:var(--white)}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:.62rem .75rem;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:#eaf2eb;font-size:.88rem;color:var(--navy)}
+tbody tr:last-child td{border-bottom:0}
+.note{margin:1rem 0;padding:.85rem 1rem;background:var(--mint);border-left:4px solid var(--green);border-radius:4px}
+.note.warning{background:var(--warm);border-left-color:#955717}
+.note p:last-child{margin-bottom:0}
+pre{margin:0;padding:1rem;overflow:auto;tab-size:4;line-height:1.55;color:#e9f1ee;background:#162923}
+pre code{font-size:.84rem;overflow-wrap:normal}
+.codebox{border:1px solid #345047;border-radius:9px;overflow:hidden;margin:.85rem 0 1.15rem}
+.codehead{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;padding:.45rem .8rem;background:#234236;color:#f1f6f2}
+.codehead span{font-size:.84rem;font-weight:650}
+button{font:inherit;cursor:pointer;font-size:.79rem;padding:.25rem .54rem;border:1px solid #a2c5b3;color:#fff;background:#234236;border-radius:5px}
+button:hover{background:#3b6253}
+details{margin:.65rem 0;border:1px solid var(--line);border-radius:9px;background:var(--white)}
+summary{cursor:pointer;font-weight:650;padding:.75rem 1rem;color:var(--green);overflow-wrap:anywhere}
+details .codebox{margin:0 .6rem .6rem}
+details pre{max-height:32rem}
+.trace-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin-top:1rem}
+.trace{border:1px solid var(--line);border-radius:10px;background:var(--white);padding:.85rem;margin:0;min-width:0}
+.trace h4{margin:0 0 .75rem;color:var(--navy)}
+.trace ol{margin:0;padding:0;list-style:none}
+.trace li{position:relative;background:#eef4ed;border:1px solid var(--line);border-radius:6px;padding:.52rem .65rem;margin:0;overflow-wrap:anywhere;font-size:.89rem}
+.trace li+li{margin-top:1.1rem}
+.trace li+li::before{content:"↓";position:absolute;top:-1.19rem;left:50%;font-weight:750;color:var(--green);line-height:1.1rem}
+.trace small{display:block;color:var(--muted);line-height:1.4}
+.small-note{font-size:.92rem;color:var(--muted)}
+.function-list{padding:0 .8rem .8rem}
+.function{padding:.85rem .5rem;border-top:1px solid var(--line);scroll-margin-top:.9rem}
+.function:target{background:var(--mint);border-radius:6px}
+.function h4{margin:0;font-size:1rem;overflow-wrap:anywhere}
+.function p{margin:.35rem 0 .65rem}
+.function dl{display:grid;grid-template-columns:6.5rem minmax(0,1fr);gap:.2rem .65rem;font-size:.89rem;margin:.4rem 0 .7rem}
+.function dt{font-weight:650;color:var(--muted)}
+.function dd{margin:0}
+.function a{font-size:.86rem}
+.code-line:target{display:inline-block;background:#325947;color:white}
+@media(max-width:760px){.trace-grid{grid-template-columns:1fr}}
+@media(max-width:420px){.function dl{display:block}.function dt{margin-top:.4rem}}
+ol,ul{padding-left:1.3rem}
+li+li{margin-top:.32rem}
+:focus-visible{outline:3px solid #8f5e04;outline-offset:3px}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.84rem;padding:1rem 1.4rem;text-align:center}
+@media(max-width:760px){.layout{display:block;padding:1.2rem 1rem 2rem}nav{position:static;margin-bottom:1.6rem}nav a{display:inline-block}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:360px){.flow{grid-template-columns:1fr}}
+@media print{.layout{display:block}nav,button{display:none}.hero{padding:1rem;color:#000;background:white}.hero p:last-child{color:#000}}
+
+.top{position:fixed;inset:0 0 auto;z-index:10;height:3.75rem;background:#123a31;color:white;display:flex;align-items:center;gap:1.4rem;padding:0 max(1rem,calc((100vw - 1170px)/2));box-shadow:0 2px 8px #0003}.top a{color:white;white-space:nowrap}.top>a:first-child{font-weight:750;text-decoration:none}.top label{margin-left:auto;white-space:nowrap}.top select{font:inherit;max-width:40vw}.layout{display:block;max-width:1220px}body{padding-top:3.75rem}html{scroll-padding-top:4.6rem}.comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:auto;gap:.7rem}.comparison figure{margin:0;min-width:0;background:#162923}.comparison figcaption{padding:.55rem .9rem;background:#234236;color:white;font-weight:650}.comparison pre{white-space:pre-wrap;overflow-wrap:anywhere}.comparison pre code{overflow-wrap:anywhere}.map{white-space:pre;overflow:auto}.walk table{min-width:620px}.walk{overflow:auto}section table{font-size:.94rem}
+@media(max-width:700px){.top .shortcut{display:none}.top{gap:.3rem}.comparison{grid-template-columns:repeat(2,minmax(260px,1fr))}main{min-width:0}section{overflow-x:auto}}
+@media print{.top{display:none}body{padding:0}.comparison{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><header class="top"><a href="#overview">Reporting Trends</a><a class="shortcut" href="#architecture">File architecture</a><a class="shortcut" href="#compare">Compare code</a><label>Jump to <select aria-label="Jump to section" onchange="if(this.value){location.hash=this.value;this.selectedIndex=0}"><option value="">Choose section</option><option value="overview">Explain it to anyone</option><option value="architecture">Architecture and call map</option><option value="inputs">Consolidation</option><option value="example">Six-window example</option><option value="params">Parameter dictionary</option><option value="math">Formulas and code</option><option value="compare">Side-by-side code</option><option value="plotly">Plotly rendering</option><option value="changes">Changes since v5</option><option value="data">Input and bundled sample</option><option value="quickstart">Build from scratch</option><option value="functions">Function-by-function guide</option><option value="calculations">Trend calculations</option><option value="dashboard">Dashboard and Excel</option><option value="verification">Verify the build</option><option value="next">Next steps</option><option value="source">Complete source</option></select></label></header>
+<header class="hero">
+<p class="kicker">Developer guide · Python and Streamlit</p>
+<h1>Build the Reporting Trends Dashboard</h1>
+<p>Understand what each function does, why it exists, and where its output goes. Follow one daily P&amp;L number through the dashboard, then rebuild the pieces in the same order.</p>
+</header>
+<div class="layout">
+
+<main>
+<section id="overview">
+<h2>Explain it to anyone</h2>
+<blockquote class="note">“The dashboard reads daily profit and loss from monthly Excel files. For each report and indicator, it compares the selected day with that pair’s own history. It highlights unusually large changes, shows the numbers behind each flag, and lets you download the results.”</blockquote>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Term</th><th scope="col">In everyday words</th></tr></thead>
+<tbody>
+<tr><td>COB</td><td>The close-of-business date the number belongs to.</td></tr>
+<tr><td>Report and indicator</td><td>The name of the report and which number within that report you want to track. Here, Rates is the report and Net P&amp;L is the indicator.</td></tr>
+<tr><td>Historical baseline</td><td>The earlier results used to decide what is usual for that same report and indicator.</td></tr>
+<tr><td>Z-score</td><td>How far today’s number sits above or below its historical average, measured in units of its usual spread.</td></tr>
+<tr><td>DataFrame</td><td>A table in Python. A pivot puts dates across columns so you can scan across a row.</td></tr>
+</tbody></table></div>
+<p>The demo shows Rates at <strong>+3.00 mEUR</strong> with a <strong>+3.16 z-score</strong>. The heatmap shows both values and uses score magnitude for its colour. The Anomaly Overview uses the same score to flag Rates. Credit shows <strong>insufficient history</strong> because it has only one earlier observation.</p>
+</section>
+<section id="architecture">
+<h2>Architecture</h2>
+<p>Both entry points call <code>ReportTrendAnalyzer.run_trend_analysis()</code>. The analyzer returns three DataFrames that the charts and exporter can consume independently.</p>
+<h3>Which file calls which?</h3><pre class="map" aria-label="File interaction diagram"><code>Trend_dashboard.py (Streamlit)           run_trend.py (command line)
+          │                                        │
+          └───────────────┬────────────────────────┘
+                          ▼
+              Publication_Trendv2.py  ←  monthly Excel workbooks
+              ReportTrendAnalyzer.run_trend_analysis()
+                          │
+                          └── returns history, trend and comparison to its caller
+
+Streamlit → analyzer.get_heatmap_statistics(filtered history, dates, window)
+          → Heatmap_Trend.py → Plotly figure → Streamlit heatmap
+Streamlit → same statistics filtered to selected COB → Anomaly Overview
+Streamlit or CLI → export_utils.py → Excel workbook</code></pre>
+<table><thead><tr><th>Component</th><th>Input and responsibility</th><th>Output and consumer</th></tr></thead><tbody>
+<tr><td><a href="Trend_dashboard.py">Streamlit controls</a></td><td>The workbook root and selected COB identify the run. <code>load_trend()</code> caches the analyzer result for five minutes.</td><td>The dashboard receives history, trend and comparison tables.</td></tr>
+<tr><td><a href="Publication_Trendv2.py">ReportTrendAnalyzer</a></td><td><code>load_daily_data()</code> stacks and validates the monthly records. <code>calculate_trend_parameters()</code> groups history by report and indicator, then evaluates each window.</td><td>One trend row per observed pair for the selected COB. The analyzer joins the mapped previous-month comparison to that row.</td></tr>
+<tr><td>Heatmap statistics</td><td>Streamlit filters history to the selected pairs and passes the visible dates and window to <code>get_heatmap_statistics()</code>. Each visible COB has its own historical cutoff.</td><td>One statistics row per observed pair and visible COB. The heatmap uses these rows; Anomaly Overview selects the current COB from the same result.</td></tr>
+<tr><td><a href="Heatmap_Trend.py">Plotly figure</a></td><td><code>generate_zscore_heatmap()</code> places each statistics row at its report–indicator and date coordinates.</td><td>Three aligned grids supply the color band, two-line cell label and hover details to Streamlit.</td></tr>
+<tr><td><a href="export_utils.py">Excel export</a></td><td>The export uses the requested COB’s trend data and a daily P&amp;L pivot.</td><td>The Trend sheet includes all six windows. The Heatmap Data sheet contains daily P&amp;L by date.</td></tr></tbody></table><div class="flow" aria-label="Data flow from inputs through outputs">
+<div class="module"><strong>Monthly Excel</strong><small>One workbook per month, grouped by year.</small></div>
+<div class="module"><strong>Analyzer</strong><small>Load history, score each group, compare business days.</small></div>
+<div class="module"><strong>Result dictionary</strong><small><code>history</code>, <code>trend</code>, and <code>comparison</code>.</small></div>
+<div class="module"><strong>Outputs</strong><small>Streamlit charts, Excel download, and CLI workbook.</small></div>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">File</th><th scope="col">Responsibility</th></tr></thead>
+<tbody>
+<tr><td><code>Publication_Trendv2.py</code></td><td>Workbook discovery, window selection, statistics, previous-month COB mapping, and audit logging.</td></tr>
+<tr><td><code>Heatmap_Trend.py</code></td><td>Plotly heatmap and line charts, plus the P&amp;L pivot used by XLSX export.</td></tr>
+<tr><td><code>Trend_dashboard.py</code></td><td>Streamlit selections, cached data loading, five tabs and downloads.</td></tr>
+<tr><td><code>export_utils.py</code></td><td>Unit conversion, dates, and formatting for both Excel sheets.</td></tr>
+<tr><td><code>run_trend.py</code></td><td>Command-line entry point. It uses the same engine and XLSX exporter.</td></tr>
+</tbody></table></div>
+<ul>
+<li><code>history</code> contains loaded observations up to and including the selected COB.</li>
+<li><code>trend</code> contains one selected-COB row per report and indicator, with six window results and matched previous-month fields.</li>
+<li><code>comparison</code> contains the latest requested COBs within the selected month and their corresponding prior-month values.</li>
+</ul>
+<h3>Function call map</h3>
+<p>Read each path from top to bottom. Select a function to see what it takes, what it produces, and why the project calls it.</p>
+<div class="trace-grid"><article class="trace"><h4>1. Load and analyze</h4><ol><li><a href="#fn-Trend_dashboard-main" data-reveal><code>Streamlit main()</code></a> · <a href="#fn-run_trend-main" data-reveal><code>CLI main()</code></a><small>Two ways to start.</small></li><li><a href="#fn-Trend_dashboard-load_trend" data-reveal><code>Load and cache</code></a><small>Streamlit caches the result. The CLI calls the analyzer directly.</small></li><li><a href="#fn-Publication_Trendv2-run_trend_analysis" data-reveal><code>Run the analyzer</code></a><small>Starts the audit and delegates the calculation.</small></li><li><a href="#fn-Publication_Trendv2-load_daily_data" data-reveal><code>Read workbooks</code></a> · <a href="#fn-Publication_Trendv2-calculate_trend_parameters" data-reveal><code>Score current COB</code></a> · <a href="#fn-Publication_Trendv2-get_previous_month_comparison" data-reveal><code>Match prior month</code></a><small>Builds history, computes scores and matches prior-month dates.</small></li></ol></article><article class="trace"><h4>2. Show anomalies</h4><ol><li><a href="#fn-Trend_dashboard-main" data-reveal><code>Streamlit main()</code></a><small>Selects report, indicator, dates and window from the loaded history.</small></li><li><a href="#fn-Publication_Trendv2-get_heatmap_statistics" data-reveal><code>Score each cell</code></a><small>Produces one row of statistics per observed cell.</small></li><li><a href="#fn-Publication_Trendv2-_window" data-reveal><code>Pick earlier rows</code></a> · <a href="#fn-Publication_Trendv2-_score_baseline" data-reveal><code>Calculate score</code></a><small>Reuses the engine’s date and scoring rules.</small></li><li><a href="#fn-Heatmap_Trend-generate_zscore_heatmap" data-reveal><code>Draw heatmap</code></a> · <a href="#fn-Trend_dashboard-show_anomaly_overview" data-reveal><code>Show anomaly table</code></a><small>One table feeds the chart and the selected-date overview.</small></li></ol></article><article class="trace"><h4>3. Export Excel</h4><ol><li><a href="#fn-Trend_dashboard-show_excel_export" data-reveal><code>Save File tab</code></a> · <a href="#fn-run_trend-main" data-reveal><code>CLI main()</code></a><small>Both obtain the shared analysis result.</small></li><li><a href="#fn-export_utils-make_excel" data-reveal><code>Build workbook</code></a><small>Writes Trend and Heatmap Data to an in-memory workbook.</small></li><li><a href="#fn-export_utils-convert_to_meur" data-reveal><code>Convert amounts</code></a> · <a href="#fn-Heatmap_Trend-history_to_pivot" data-reveal><code>Put dates in columns</code></a><small>Prepares values and layout for the two sheets.</small></li></ol></article></div>
+<p class="small-note">The Threshold Analysis tab reads the selected pair’s metrics from <code>trend</code> and uses <code>_window()</code> to retrieve the observations for its histogram. Line Graphs uses <code>history_to_pivot()</code>. The dashboard calls these paths separately from the anomaly table.</p>
+</section>
+
+<h2 id="inputs">From monthly workbooks to one row</h2><div class="walk"><table><thead><tr><th>Follow Rates / Net P&amp;L on 25 Nov 2026</th><th>What one row holds</th></tr></thead><tbody><tr><td>Monthly workbook → history</td><td>One Daily observation with date, report, indicator and +3,000 kEUR. Stacking months adds earlier observations as rows.</td></tr><tr><td>History → trend</td><td>The selected COB stays one row. Six passes over the pair’s earlier values add columns such as <code>short_observations = 5</code>, <code>short_zscore ≈ 3.16</code> and <code>long_zscore ≈ 4.74</code>. The prior-month fields are joined by date, report and indicator.</td></tr><tr><td>History → heatmap statistics</td><td>With Short selected, the analyzer repeats the five-observation calculation for each visible COB. The 25 November cell displays +3.00 mEUR and z = +3.16.</td></tr></tbody></table></div>
+<ol><li><strong>Stack the monthly records.</strong> The loader reads the first sheet of each monthly workbook, filters to the requested version and retains dates through the selected COB. It loads through January for year-to-date coverage and looks farther back when more rolling history is needed. For the heatmap it also checks history before the oldest visible observation for each pair.</li>
+<li><strong>Identify each observation.</strong> Within the selected version, the key is COB date, report name and indicator. Duplicate keys raise an error. A missing historical workbook is logged. An absent observation stays absent.</li>
+<li><strong>Group by report and indicator.</strong> A pair with a current observation contributes one trend row. For each of the six windows, the analyzer selects earlier rows for that pair, calculates the parameters, and adds columns with the window name as a prefix, such as <code>short_avg</code> and <code>month_avg</code>.</li>
+<li><strong>Attach the previous-month comparison.</strong> A separate business-day mapping supplies the prior COB. A one-to-one left join adds its date, business-day position, P&amp;L, change and percentage change to the current trend row. An unmatched prior value stays blank.</li></ol>
+<section id="example"><h2>One Rates observation, six baselines</h2>
+<p>The bundled demo has a Rates / Net P&amp;L observation of <strong>+3.00 mEUR on 25 November 2026</strong>. All six baselines end on 24 November. Means and sample standard deviations below are converted from kEUR to mEUR for display.</p>
+<table><thead><tr><th>Window</th><th>Default selection</th><th>First COB (2026)</th><th>Count</th><th>Mean</th><th>Std. dev.</th><th>Z-score</th></tr></thead><tbody>
+<tr><td>Short</td><td>Last 5 observations</td><td>18 Nov</td><td>5</td><td>0.000</td><td>0.949</td><td>+3.16</td></tr>
+<tr><td>Long</td><td>Last 60 observations</td><td>2 Sep</td><td>60</td><td>−0.005</td><td>0.633</td><td>+4.74</td></tr>
+<tr><td>Broad</td><td>Last 100 observations</td><td>8 Jul</td><td>100</td><td>−0.018</td><td>0.616</td><td>+4.90</td></tr>
+<tr><td>Month</td><td>Month to date, minimum 7</td><td>2 Nov</td><td>17</td><td>−0.053</td><td>0.713</td><td>+4.28</td></tr>
+<tr><td>Quarter</td><td>Quarter to date, minimum 10</td><td>1 Oct</td><td>39</td><td>−0.008</td><td>0.651</td><td>+4.62</td></tr>
+<tr><td>Full year</td><td>Year to date, minimum 20</td><td>2 Jan</td><td>233</td><td>−0.008</td><td>0.607</td><td>+4.95</td></tr></tbody></table></section>
+<p class="example">The five short-window values are −1.20, −0.60, 0.00, +0.60 and +1.20 mEUR. Their mean is zero. Dividing today’s +3.00 by their sample standard deviation of approximately 0.949 gives +3.16. Credit first appears on 24 November, so on 25 November its short window records one observation and an insufficient-history status.</p>
+<h2 id="params">Reading the consolidated parameters</h2>
+<dl><dt><strong>avg, std, zscore, anomaly</strong></dt><dd>The baseline provides the mean and sample standard deviation. Z-score equals (current − mean) / std. The default anomaly threshold flags |z| ≥ 2. With zero spread, an unchanged value scores zero. A changed value is flagged with an undefined score.</dd>
+<dt><strong>min, max, change, change_pct</strong></dt><dd>Min and max describe the baseline. Change equals its last value minus its first. Percentage change divides that difference by the absolute first value and multiplies by 100. A zero starting value leaves the percentage blank.</dd>
+<dt><strong>slope, direction</strong></dt><dd>A line fitted to P&amp;L against observation order gives the slope per observation. Its sign determines Rising or Falling, with slopes within ±10⁻¹⁰ classified as Flat.</dd>
+<dt><strong>start, end, observations, status</strong></dt><dd>Each window records its actual coverage and count. When the count falls short, its statistics stay blank and its status is <code>insufficient_data</code>. Other windows are evaluated independently.</dd>
+<dt><strong>daily, version, computed_cols</strong></dt><dd>These fields apply to the whole row. They record current P&amp;L, the selected data version and the names of the windows with sufficient history.</dd></dl>
+<h2 id="math">From a consolidated row to a score</h2>
+<p>Choose one report, indicator and COB. Let <var>x</var> be its daily P&amp;L and let <var>b₁ … bₙ</var> be the earlier daily observations selected for that same pair and window. The current COB is excluded even when it is the last row in the input workbook.</p>
+<p class="formula">Mean μ = Σ bᵢ / n<br>Sample spread s = √[Σ (bᵢ − μ)² / (n − 1)]<br>Signed score z = (x − μ) / s</p>
+<p>For the Rates short window, the five squared deviations sum to 3.60 mEUR². The sample spread is √(3.60 / 4) ≈ 0.94868 mEUR. The heatmap prints <strong>+3.00 mEUR</strong> above <strong>z = +3.16</strong> and colors the cell red because the unrounded score exceeds 3.</p>
+<p><strong>Trend movement.</strong> Baseline change is bₙ − b₁ and percentage change is 100 × (bₙ − b₁) / |b₁|. For these five observations the change is +2.40 mEUR, or +200%. The slope is the least-squares coefficient of P&amp;L against observation index, here +0.60 mEUR per observation.</p>
+<p>The following excerpts come from <a href="Publication_Trendv2.py">Publication_Trendv2.py</a>. Read them in data-flow order. Comments in the excerpts explain the calculation and rendering decisions.</p>
+<details><summary>Combine monthly records and check the row key</summary><pre><code>        data = pd.concat(frames, ignore_index=True)
+        # A duplicate would count one pair twice on the same COB.
+        if data.duplicated(COB_KEY).any():
+            raise ValueError(&quot;Duplicate COB/report/indicator records&quot;)</code></pre></details>
+<details><summary>Slice the rolling or calendar baseline</summary><pre><code>    def _window(self, history, as_of, period):
+        &quot;&quot;&quot;Select observations strictly before the date being scored.&quot;&quot;&quot;
+        if period not in PERIODS:
+            raise ValueError(f&quot;period must be one of {PERIODS}&quot;)
+        dates = history[&quot;cob_date&quot;]
+        if not dates.is_monotonic_increasing:
+            history = history.sort_values(&quot;cob_date&quot;)
+            dates = history[&quot;cob_date&quot;]
+        # Stop before the current COB so its P&amp;L cannot influence its own baseline.
+        end = dates.searchsorted(as_of)
+        if period in self.windows:
+            start = max(0, end - self.windows[period])
+        else:
+            calendar_start = as_of.to_period(CALENDAR_WINDOWS[period]).start_time
+            start = dates.searchsorted(calendar_start)
+        return history.iloc[start:end]</code></pre></details>
+<details><summary>Compute the score and handle zero spread</summary><pre><code>    def _score_baseline(self, values, current):
+        &quot;&quot;&quot;Return mean, sample spread, z-score and anomaly for a valid baseline.&quot;&quot;&quot;
+        mean = float(np.mean(values))
+        std = float(np.std(values, ddof=1))
+        # A constant baseline has no spread. A departure is flagged but has no finite z-score.
+        if std == 0:
+            if current == mean:
+                return mean, std, 0.0, False
+            return mean, std, None, True
+        score = (float(current) - mean) / std
+        return mean, std, score, abs(score) &gt;= self.anomaly_z_threshold</code></pre></details>
+<details><summary>Build each window’s metrics</summary><pre><code>    def _stats(self, window, current, period):
+        &quot;&quot;&quot;Build the full set of export statistics for one trend window.&quot;&quot;&quot;
+        count = len(window)
+        enough_history = count &gt;= self.windows.get(period, MINIMUM[period])
+        metrics = dict.fromkeys(TREND_METRICS + CHANGE_METRICS)
+        # Keep the observation count and coverage even when this window cannot be scored.
+        if enough_history:
+            values = window[&quot;daily&quot;].to_numpy(dtype=float)
+            mean, std, score, flagged = self._score_baseline(values, current)
+            slope = float(np.polyfit(np.arange(count), values, 1)[0])
+            direction = &quot;Flat&quot;
+            if slope &gt; 1e-10:
+                direction = &quot;Rising&quot;
+            elif slope &lt; -1e-10:
+                direction = &quot;Falling&quot;
+            change = float(values[-1] - values[0])
+            metrics.update(
+                avg=mean,
+                std=std,
+                zscore=score,
+                anomaly=flagged,
+                direction=direction,
+                min=float(values.min()),
+                max=float(values.max()),
+                change=change,
+                change_pct=100 * change / abs(values[0]) if values[0] else None,
+                slope=slope,
+            )
+        metrics.update(
+            start=window[&quot;cob_date&quot;].min().strftime(&quot;%Y-%m-%d&quot;) if count else None,
+            end=window[&quot;cob_date&quot;].max().strftime(&quot;%Y-%m-%d&quot;) if count else None,
+            observations=count,
+            status=&quot;ok&quot; if enough_history else &quot;insufficient_data&quot;,
+        )
+        return {f&quot;{period}_{name}&quot;: value for name, value in metrics.items()}</code></pre></details>
+<details><summary>Attach the six sets of fields to each pair</summary><pre><code>        for (report, indicator), grp in data.groupby(
+            [&quot;report_name&quot;, &quot;indicator&quot;], sort=True
+        ):
+            current = grp[grp[&quot;cob_date&quot;] == asof]
+            if current.empty:
+                continue
+            value = float(current.iloc[-1][&quot;daily&quot;])
+            row = {
+                &quot;cob_date&quot;: asof,
+                &quot;report_name&quot;: report,
+                &quot;indicator&quot;: indicator,
+                &quot;daily&quot;: value,
+                &quot;version&quot;: self.version,
+            }
+            # Each pass adds a new set of prefixed fields to the same output row.
+            for period in PERIODS:
+                window = self._window(grp, asof, period)
+                row.update(self._stats(window, value, period))
+            row[&quot;computed_cols&quot;] = &quot;, &quot;.join(
+                p for p in PERIODS if row[p + &quot;_status&quot;] == &quot;ok&quot;
+            )
+            rows.append(row)</code></pre></details>
+<details><summary>Score each visible heatmap COB</summary><pre><code>        for (report, indicator), group in history.groupby(PAIR_COLUMNS, sort=True):
+            group = group.sort_values(&quot;cob_date&quot;)
+            current_rows = group.loc[group[&quot;cob_date&quot;].isin(dates)]
+            for current in current_rows.itertuples(index=False):
+                # Move the cutoff with the cell date when scoring historical columns.
+                values = self._window(group, current.cob_date, window)[&quot;daily&quot;]
+                mean = std = score = None
+                status = &quot;Insufficient history&quot;
+                if len(values) &gt;= minimum:
+                    mean, std, score, flagged = self._score_baseline(
+                        values.to_numpy(dtype=float), current.daily
+                    )
+                    status = &quot;Flagged&quot; if flagged else &quot;Within range&quot;</code></pre></details>
+<section id="compare"><h2>Code comparison · v5 and current</h2><h3>Choose the baseline</h3><p>Both versions exclude the selected COB. The current implementation locates its position in the ordered dates and slices the preceding rows.</p><div class="comparison"><figure><figcaption>v5 · Publication_Trendv2.py</figcaption><pre><code>ref=history[history[&quot;cob_date&quot;]&lt;asof].sort_values(&quot;cob_date&quot;)
+if occurrence in self.windows:return ref.tail(self.windows[occurrence])
+start=(asof.to_period({&quot;month&quot;:&quot;M&quot;,&quot;quarter&quot;:&quot;Q&quot;,&quot;fullyear&quot;:&quot;Y&quot;}[occurrence]).start_time)
+return ref[ref[&quot;cob_date&quot;]&gt;=start]</code></pre></figure><figure><figcaption>Current · Publication_Trendv2.py</figcaption><pre><code>end = dates.searchsorted(as_of)
+if period in self.windows:
+    start = max(0, end - self.windows[period])
+else:
+    calendar_start = as_of.to_period(CALENDAR_WINDOWS[period]).start_time
+    start = dates.searchsorted(calendar_start)
+return history.iloc[start:end]</code></pre></figure></div><h3>Calculate the score</h3><p>The sample standard deviation uses n − 1 in both versions. The current helper also handles a constant baseline and supplies the same score to trend and heatmap calculations.</p><div class="comparison"><figure><figcaption>v5 · Publication_Trendv2.py</figcaption><pre><code>avg=float(np.mean(vals));std=float(np.std(vals,ddof=1))
+slope=float(np.polyfit(np.arange(count),vals,1)[0])
+z=(float(current)-avg)/std if std&gt;0 else (0.0 if current==avg else None)</code></pre></figure><figure><figcaption>Current · Publication_Trendv2.py</figcaption><pre><code>mean = float(np.mean(values))
+std = float(np.std(values, ddof=1))
+if std == 0:
+    if current == mean:
+        return mean, std, 0.0, False
+    return mean, std, None, True
+score = (float(current) - mean) / std
+return mean, std, score, abs(score) &gt;= self.anomaly_z_threshold</code></pre></figure></div><h3>Supply the Plotly color and label</h3><p>In v5, the visible P&amp;L values determine the color scale. The current figure receives a discrete score-band index, a two-line label, and hover details for each cell.</p><div class="comparison"><figure><figcaption>v5 · Heatmap_Trend.py</figcaption><pre><code>fig=go.Figure(go.Heatmap(z=values,x=[pd.Timestamp(x).strftime(&#x27;%d %b %Y&#x27;) for x in date_cols],
+    y=(data[&#x27;report_name&#x27;].astype(str)+&#x27; | &#x27;+data[&#x27;indicator&#x27;].astype(str)).tolist(),
+    text=np.where(np.isfinite(values),np.round(values,2).astype(str),&#x27;&#x27;),texttemplate=&#x27;%{text}&#x27;,
+    colorscale=COLORS,zmin=-limit,zmax=limit,xgap=2,ygap=2,</code></pre></figure><figure><figcaption>Current · Heatmap_Trend.py</figcaption><pre><code>z=scores,
+text=labels,
+customdata=tooltips,
+texttemplate=&quot;%{text}&quot;,
+colorscale=[
+    [edge / len(bands), shade]
+    for index, (_, shade) in enumerate(bands)
+    for edge in (index, index + 1)
+],
+zmin=-0.5,
+zmax=len(bands) - 0.5,</code></pre></figure></div></section><h2 id="plotly">How Plotly renders a cell</h2><p>In v5, Plotly received the P&amp;L pivot as its color input and stretched the scale to the largest visible absolute amount. The current chart passes three aligned grids to Plotly. For Equities on 25 November, the short-window cell has color index <strong>3</strong> (amber), visible text <strong>−2.50 mEUR</strong> above <strong>z = −2.64</strong>, and a tooltip that includes daily P&amp;L of <strong>−2.50 mEUR</strong>.</p>
+<details><summary>Full v5 rendering excerpt</summary><pre><code>    values=data[date_cols].apply(pd.to_numeric,errors=&#x27;coerce&#x27;).to_numpy(dtype=float)
+    limit=max(1,float(np.nanmax(np.abs(values)))) if np.isfinite(values).any() else 1
+    fig=go.Figure(go.Heatmap(z=values,x=[pd.Timestamp(x).strftime(&#x27;%d %b %Y&#x27;) for x in date_cols],
+        y=(data[&#x27;report_name&#x27;].astype(str)+&#x27; | &#x27;+data[&#x27;indicator&#x27;].astype(str)).tolist(),
+        text=np.where(np.isfinite(values),np.round(values,2).astype(str),&#x27;&#x27;),texttemplate=&#x27;%{text}&#x27;,
+        colorscale=COLORS,zmin=-limit,zmax=limit,xgap=2,ygap=2,
+        colorbar=dict(title=&#x27;mEUR&#x27;),hovertemplate=&#x27;%{y}&lt;br&gt;%{x}&lt;br&gt;%{z:,.3f} mEUR&lt;extra&gt;&lt;/extra&gt;&#x27;))</code></pre>
+</details><h3>Current rendering · Heatmap_Trend.py</h3><p>The band uses the full-precision magnitude. Rounding to two decimals affects only the label. Equal color stops on either side of each boundary create solid bands. An unavailable score displays a dash; an absent observation leaves a gap.</p>
+<pre><code>    bands = [
+        (&quot;Unavailable&quot;, &quot;#bfc5cd&quot;),
+        (&quot;−1 ≤ z ≤ 1&quot;, &quot;#dcf5dc&quot;),
+        (&quot;1 &lt; |z| ≤ 2&quot;, &quot;#83c98d&quot;),
+        (&quot;2 &lt; |z| ≤ 3&quot;, &quot;#b77916&quot;),
+        (&quot;|z| &gt; 3&quot;, &quot;#b91c1c&quot;),
+    ]</code></pre>
+<details open><summary>Assign the cell color, label and tooltip</summary><pre><code>        if pd.notna(cell.zscore):
+            # Use the unrounded magnitude for color; preserve the sign in the label.
+            magnitude = abs(cell.zscore)
+            if magnitude &gt; 3:
+                color = 4
+            elif magnitude &gt; 2:
+                color = 3
+            elif magnitude &gt; 1:
+                color = 2
+            else:
+                color = 1
+            score_text = f&quot;{cell.zscore:+.2f}&quot;
+        elif cell.status == &quot;Flagged&quot;:
+            color = 0
+            score_text = &quot;Undefined (zero standard deviation)&quot;
+        else:
+            color = 0
+            score_text = &quot;—&quot;
+
+        scores[row][column] = color
+        label_score = score_text if pd.notna(cell.zscore) else &quot;—&quot;
+        # Convert kEUR to mEUR for line one. Line two shows the dimensionless score.
+        labels[row][column] = f&quot;{cell.daily / 1000:+,.2f} mEUR&lt;br&gt;z = {label_score}&quot;
+        tooltips[row][column] = (
+            f&quot;Daily P&amp;L: {amount(cell.daily)}&lt;br&gt;&quot;
+            f&quot;Historical mean: {amount(cell.mean)}&lt;br&gt;&quot;
+            f&quot;Standard deviation: {amount(cell.std)}&lt;br&gt;&quot;
+            f&quot;Z-score: {score_text}&lt;br&gt;Status: {cell.status}&quot;
+        )</code></pre> </details>
+<details open><summary>Pass the grids and discrete scale to go.Heatmap</summary><pre><code>    fig = go.Figure(
+        go.Heatmap(
+            x=date_labels,
+            y=[f&quot;{report} | {indicator}&quot; for report, indicator in pairs],
+            z=scores,
+            text=labels,
+            customdata=tooltips,
+            texttemplate=&quot;%{text}&quot;,
+            # Repeat each shade at both edges of its interval to create discrete bands.
+            colorscale=[
+                [edge / len(bands), shade]
+                for index, (_, shade) in enumerate(bands)
+                for edge in (index, index + 1)
+            ],
+            zmin=-0.5,
+            zmax=len(bands) - 0.5,
+            xgap=3,
+            ygap=3,
+            hoverongaps=False,
+            colorbar=dict(
+                title=&quot;Z-score&quot;,
+                tickvals=list(range(len(bands))),
+                ticktext=[label for label, _ in bands],
+            ),
+            hovertemplate=&quot;&lt;b&gt;%{y}&lt;/b&gt; · %{x}&lt;br&gt;%{customdata}&lt;extra&gt;&lt;/extra&gt;&quot;,
+        )
+    )</code></pre></details>
+<p>Streamlit requests statistics for the selected window and passes them to the figure builder in <a href="Trend_dashboard.py">Trend_dashboard.py</a>.</p><pre><code>    stats = analyzer.get_heatmap_statistics(selected_history, dates, window)</code></pre><pre><code>            st.plotly_chart(
+                generate_zscore_heatmap(stats, dates),
+                use_container_width=True,
+            )</code></pre>
+<section id="changes"><h2>What changed since v5</h2>
+<table><thead><tr><th>Area</th><th>Linked v5 source</th><th>Current dashboard</th></tr></thead><tbody>
+<tr><td>Consolidation</td><td>Loops over six periods per pair, writing prefixed statistics to one row.</td><td>Preserves that row structure. The trend calculation and historical heatmap both use the same baseline scoring function.</td></tr>
+<tr><td>Heatmap input</td><td>Plots the daily P&amp;L pivot and scales colors to the largest absolute visible amount.</td><td>Scores each visible COB against earlier history for the selected window. Cell text gives daily P&amp;L in mEUR and the signed z-score. Hover gives daily P&amp;L in mEUR, mean, spread, score and status.</td></tr>
+<tr><td>Color scale</td><td>A continuous red-to-green scale expresses signed P&amp;L.</td><td>Absolute z-score determines the band. Through 1 is light green, above 1 through 2 is medium green, above 2 through 3 is dark amber, and above 3 is red. An observed cell with an unavailable score is gray.</td></tr>
+<tr><td>Trend window control</td><td>The heatmap consumes P&amp;L directly.</td><td>The selector occupies the first of three equal dashboard columns. Choosing a window updates the heatmap and anomaly overview. The Excel Trend sheet still contains all six windows.</td></tr></tbody></table></section>
+<section id="data">
+<h2>Input and bundled sample</h2>
+<p>COB means close of business. Put each workbook directly under its year folder. For example, <code>demo_data/2026/Flat_Conso_Reports_Nov.xlsx</code> holds November 2026 records. The loader reads the first worksheet.</p>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Column</th><th scope="col">Example</th><th scope="col">Use</th></tr></thead>
+<tbody>
+<tr><td><code>cob_date</code></td><td>2026-11-25</td><td>Observation date. The analyzer normalizes it to midnight for filtering and joins.</td></tr>
+<tr><td><code>version</code></td><td>Daily</td><td>Workbook rows can also contain Flash and Final. Streamlit uses Daily. The CLI accepts all three.</td></tr>
+<tr><td><code>report_name</code></td><td>Rates</td><td>First part of the group key.</td></tr>
+<tr><td><code>indicator</code></td><td>Net P&amp;L</td><td>Second part of the group key.</td></tr>
+<tr><td><code>daily</code></td><td>3000</td><td>Numeric daily P&amp;L in kEUR. This example displays as 3.00 mEUR.</td></tr>
+<tr><td><code>bus_count</code></td><td>18</td><td>Source business-day number used in the comparison output. Include it for end-to-end runs.</td></tr>
+</tbody></table></div>
+<p>After version filtering, each <code>(cob_date, report_name, indicator)</code> key must be unique. MTD and YTD may be present in source workbooks. This dashboard and its Excel export use daily P&amp;L.</p>
+<h3>Start with the bundled workbooks</h3>
+<p>Extract the ZIP and use <code>Trends/demo_data/</code> as the workbook root. The package includes 11 synthetic monthly workbooks, January through November 2026. The dashboard opens with this folder by default. Set <code>TREND_ROOT</code> or change <strong>Workbook root folder</strong> to point to your own files.</p>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Report and indicator</th><th scope="col">P&amp;L (mEUR)</th><th scope="col">Short z-score</th><th scope="col">Outcome on 25 Nov</th></tr></thead>
+<tbody>
+<tr><td>Credit · Net P&amp;L</td><td>+0.25</td><td>—</td><td>Insufficient history</td></tr>
+<tr><td>Equities · Net P&amp;L</td><td>−2.50</td><td>−2.64</td><td>Flagged below baseline</td></tr>
+<tr><td>FX · Trading P&amp;L</td><td>+0.10</td><td>+0.25</td><td>Within range</td></tr>
+<tr><td>Rates · Net P&amp;L</td><td>+3.00</td><td>+3.16</td><td>Flagged above baseline</td></tr>
+</tbody></table></div>
+<div class="note"><strong>How loading stops.</strong> The analyzer walks backward over monthly files, potentially into the previous year. It covers at least the larger of the requested month count and the months since January, then seeks enough observations for the broad window. For chart history, it also checks the baseline before the oldest displayed observation of each pair. The selected-COB workbook must exist. Missing earlier files are logged and their observations remain absent.</div>
+</section>
+
+<section id="quickstart">
+<h2>Build from scratch</h2>
+<h3>1. Create a project and install dependencies</h3>
+<p>Open a terminal and run the commands for your platform from a folder where you can create a project. Save the tutorial and source files into the same <code>Trends</code> directory.</p>
+<div class="codebox"><div class="codehead"><span>macOS or Linux</span><div><button type="button" data-action="copy" aria-label="Copy macOS or Linux">Copy</button></div></div><pre tabindex="0"><code>mkdir Trends
+cd Trends
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install pandas numpy openpyxl streamlit plotly
+</code></pre></div><div class="codebox"><div class="codehead"><span>Windows PowerShell</span><div><button type="button" data-action="copy" aria-label="Copy Windows PowerShell">Copy</button></div></div><pre tabindex="0"><code>mkdir Trends
+cd Trends
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install pandas numpy openpyxl streamlit plotly
+</code></pre></div>
+<h3>2. Create synthetic input and score a single COB</h3>
+<p>Save both scripts below, then run them in order to rebuild the demo from scratch. To use the bundled workbooks, save and run just the starter script from the extracted Trends folder. The generator writes monthly workbooks. The starter script loads the data, checks uniqueness, groups by report and indicator, and calculates the short-window score. It gives you a small program to understand before opening the full analyzer.</p>
+<div class="codebox"><div class="codehead"><span>make_demo_data.py</span><div><button type="button" data-action="copy" aria-label="Copy make_demo_data.py">Copy</button><button type="button" data-action="save" data-filename="make_demo_data.py" aria-label="Save make_demo_data.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Generate synthetic monthly P&amp;L workbooks for the dashboard tutorial.&quot;&quot;&quot;
+
+from pathlib import Path
+
+import pandas as pd
+
+root = Path(&quot;demo_data&quot;)
+cobs = pd.bdate_range(&quot;2026-01-02&quot;, &quot;2026-11-25&quot;)
+rows = []
+for index, cob in enumerate(cobs):
+    month_number = len(pd.bdate_range(cob.replace(day=1), cob))
+    if cob.year == 2026 and cob.month == 1:
+        month_number -= 1  # The dashboard excludes 1 January 2026.
+    rows.append((cob, month_number, &quot;Daily&quot;, &quot;Rates&quot;, &quot;Net P&amp;L&quot;, (index % 7 - 3) * 300))
+    rows.append((cob, month_number, &quot;Daily&quot;, &quot;FX&quot;, &quot;Trading P&amp;L&quot;, (index % 5 - 2) * 250))
+    rows.append((cob, month_number, &quot;Daily&quot;, &quot;Equities&quot;, &quot;Net P&amp;L&quot;, (index % 7 - 3) * 300))
+    if cob &gt;= pd.Timestamp(&quot;2026-11-24&quot;):
+        rows.append((cob, month_number, &quot;Daily&quot;, &quot;Credit&quot;, &quot;Net P&amp;L&quot;, 250))
+
+columns = [&quot;cob_date&quot;, &quot;bus_count&quot;, &quot;version&quot;, &quot;report_name&quot;, &quot;indicator&quot;, &quot;daily&quot;]
+data = pd.DataFrame(rows, columns=columns)
+last_rates = data.loc[data[&quot;report_name&quot;].eq(&quot;Rates&quot;)].tail(6).index
+data.loc[last_rates, &quot;daily&quot;] = [-1200, -600, 0, 600, 1200, 3000]
+last_equities = data.loc[data[&quot;report_name&quot;].eq(&quot;Equities&quot;)].tail(6).index
+data.loc[last_equities, &quot;daily&quot;] = [-1200, -600, 0, 600, 1200, -2500]
+last_fx = data.loc[data[&quot;report_name&quot;].eq(&quot;FX&quot;)].tail(6).index
+data.loc[last_fx, &quot;daily&quot;] = [-500, -250, 0, 250, 500, 100]
+
+for month, rows in data.groupby(data[&quot;cob_date&quot;].dt.to_period(&quot;M&quot;)):
+    directory = root / str(month.year)
+    directory.mkdir(parents=True, exist_ok=True)
+    rows.to_excel(directory / f&quot;Flat_Conso_Reports_{month.start_time:%b}.xlsx&quot;, index=False)
+
+print(f&quot;Demo workbooks created in {root.resolve()}&quot;)
+</code></pre></div>
+<div class="codebox"><div class="codehead"><span>starter_trend.py</span><div><button type="button" data-action="copy" aria-label="Copy starter_trend.py">Copy</button><button type="button" data-action="save" data-filename="starter_trend.py" aria-label="Save starter_trend.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Minimal scoring example. Run after make_demo_data.py.&quot;&quot;&quot;
+
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(&quot;demo_data&quot;)
+AS_OF = pd.Timestamp(&quot;2026-11-25&quot;)
+PAIR = [&quot;report_name&quot;, &quot;indicator&quot;]
+
+files = sorted(ROOT.glob(&quot;*/Flat_Conso_Reports_*.xlsx&quot;))
+if not files:
+    raise FileNotFoundError(&quot;Run make_demo_data.py first.&quot;)
+
+history = pd.concat([pd.read_excel(path) for path in files], ignore_index=True)
+history[&quot;cob_date&quot;] = pd.to_datetime(history[&quot;cob_date&quot;], errors=&quot;raise&quot;).dt.normalize()
+history[&quot;daily&quot;] = pd.to_numeric(history[&quot;daily&quot;], errors=&quot;raise&quot;)
+history = history.loc[history[&quot;version&quot;].eq(&quot;Daily&quot;) &amp; history[&quot;cob_date&quot;].le(AS_OF)]
+if history.duplicated([&quot;cob_date&quot;, *PAIR]).any():
+    raise ValueError(&quot;Duplicate COB, report and indicator.&quot;)
+
+for (report, indicator), group in history.groupby(PAIR):
+    current = group.loc[group[&quot;cob_date&quot;].eq(AS_OF), &quot;daily&quot;]
+    if current.empty:
+        continue
+
+    reference = (
+        group.loc[group[&quot;cob_date&quot;].lt(AS_OF)]
+        .sort_values(&quot;cob_date&quot;)
+        .tail(5)[&quot;daily&quot;]
+    )
+    pnl = current.iloc[0]
+    label = f&quot;{report} | {indicator}&quot;
+    if len(reference) &lt; 5:
+        print(f&quot;{label}: {pnl / 1000:+.2f} mEUR, insufficient history&quot;)
+        continue
+
+    mean, std = reference.mean(), reference.std(ddof=1)
+    if std == 0:
+        z = 0.0 if pnl == mean else None
+    else:
+        z = (pnl - mean) / std
+
+    flagged = abs(z) &gt;= 2 if z is not None else pnl != mean
+    score = f&quot;{z:+.2f}&quot; if z is not None else &quot;undefined&quot;
+    status = &quot;flagged&quot; if flagged else &quot;within range&quot;
+    print(f&quot;{label}: {pnl / 1000:+.2f} mEUR, z = {score}, {status}&quot;)
+</code></pre></div>
+<div class="codebox"><div class="codehead"><span>Run the scripts</span><div><button type="button" data-action="copy" aria-label="Copy Run the scripts">Copy</button></div></div><pre tabindex="0"><code>python make_demo_data.py
+python starter_trend.py
+</code></pre></div>
+<p>On <strong>25 November 2026</strong>, the demo gives <code>Rates | Net P&amp;L</code> a daily P&amp;L of <strong>+3.00 mEUR</strong> and a z-score of <strong>+3.16</strong>, which is flagged. <code>Credit | Net P&amp;L</code> has only one prior observation and shows insufficient history.</p>
+<h3>3. See how the starter becomes the full application</h3>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Build this piece</th><th scope="col">Where it lands in the ZIP</th><th scope="col">What to verify before moving on</th></tr></thead>
+<tbody>
+<tr><td>Read Excel and clean dates</td><td><a href="#fn-Publication_Trendv2-load_daily_data" data-reveal><code>load_daily_data()</code></a></td><td>A known date appears once per report and indicator, with P&amp;L still in kEUR.</td></tr>
+<tr><td>Select five earlier values and score today</td><td><a href="#fn-Publication_Trendv2-_window" data-reveal><code>_window()</code></a> and <a href="#fn-Publication_Trendv2-_stats" data-reveal><code>_stats()</code></a></td><td>The demo reproduces +3.16. A pair with one older row reports insufficient history.</td></tr>
+<tr><td>Repeat scoring for every row and window</td><td><a href="#fn-Publication_Trendv2-calculate_trend_parameters" data-reveal><code>calculate_trend_parameters()</code></a> and <a href="#fn-Publication_Trendv2-get_heatmap_statistics" data-reveal><code>get_heatmap_statistics()</code></a></td><td>The selected COB has the same score in the trend row and the short-window heatmap cell.</td></tr>
+<tr><td>Attach previous-month values</td><td><a href="#fn-Publication_Trendv2-get_previous_month_comparison" data-reveal><code>get_previous_month_comparison()</code></a></td><td>Check the mapped COB and match on both report and indicator. A missing prior value stays blank.</td></tr>
+<tr><td>Build the visuals and export</td><td><a href="#fn-Heatmap_Trend-generate_zscore_heatmap" data-reveal><code>generate_zscore_heatmap()</code></a> and <a href="#fn-export_utils-make_excel" data-reveal><code>make_excel()</code></a></td><td>Keep the original amount and z-score distinct. Convert P&amp;L to mEUR only when displaying or exporting it.</td></tr>
+<tr><td>Add app and CLI entry points</td><td><a href="#fn-Trend_dashboard-main" data-reveal><code>main()</code></a> and <a href="#fn-run_trend-main" data-reveal><code>main()</code></a></td><td>Both routes call the same analyzer and build the same Excel sheets from equivalent options.</td></tr>
+</tbody></table></div>
+<p>This small script shows the handoff between modules. Save it next to the full source files and run it after generating the demo workbooks. It prints the exact table that feeds the two anomaly views.</p>
+<div class="codebox"><div class="codehead"><span>inspect_trend.py</span><div><button type="button" data-action="copy" aria-label="Copy inspect_trend.py">Copy</button><button type="button" data-action="save" data-filename="inspect_trend.py" aria-label="Save inspect_trend.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Follow the result from the analyzer into the dashboard and Excel.&quot;&quot;&quot;
+
+from pathlib import Path
+
+import pandas as pd
+from export_utils import make_excel
+from Publication_Trendv2 import ReportTrendAnalyzer
+
+as_of = pd.Timestamp(&quot;2026-11-25&quot;)
+analyzer = ReportTrendAnalyzer(&quot;demo_data&quot;)
+result = analyzer.run_trend_analysis(as_of, heatmap_cobs=10)
+cells = analyzer.get_heatmap_statistics(result[&quot;history&quot;], [as_of], &quot;short&quot;)
+
+print(cells[[&quot;report_name&quot;, &quot;indicator&quot;, &quot;daily&quot;, &quot;zscore&quot;, &quot;status&quot;]].to_string(index=False))
+Path(&quot;inspect_trend.xlsx&quot;).write_bytes(make_excel(result))
+</code></pre></div><div class="codebox"><div class="codehead"><span>Follow one analysis result</span><div><button type="button" data-action="copy" aria-label="Copy Follow one analysis result">Copy</button></div></div><pre tabindex="0"><code>python inspect_trend.py
+</code></pre></div>
+<h3>4. Assemble and run the full application</h3>
+<p>In <a href="#source">Complete source</a>, save the source files into your project. Read the analyzer first, then the chart and export modules, and finally the Streamlit and CLI entry points. The companion ZIP already contains these files and the demo workbooks.</p>
+<div class="codebox"><div class="codehead"><span>Run Streamlit</span><div><button type="button" data-action="copy" aria-label="Copy Run Streamlit">Copy</button></div></div><pre tabindex="0"><code>python -m pip install -r requirements.txt
+python -m streamlit run Trend_dashboard.py
+</code></pre></div>
+<p>Open the local URL printed by Streamlit. In the sidebar, set <strong>Workbook root folder</strong> to <code>./demo_data</code>. The bundled app selects this demo folder automatically. It scans the workbooks and defaults to the latest available Daily COB. Choose <strong>Short (5 COBs)</strong> to check the worked example.</p>
+<h3>5. Export without Streamlit</h3>
+<div class="codebox"><div class="codehead"><span>Create the demo workbook</span><div><button type="button" data-action="copy" aria-label="Copy Create the demo workbook">Copy</button></div></div><pre tabindex="0"><code>python run_trend.py --root demo_data --version Daily --cob-date 2026-11-25 --output demo_trend.xlsx
+</code></pre></div>
+<p>Open <code>demo_trend.xlsx</code>. The CLI selects the latest COB of the requested version when <code>--cob-date</code> is omitted.</p>
+</section>
+
+<section id="functions">
+<h2>Function-by-function guide</h2>
+<p>Each entry shows what goes in, what comes out, why the function exists, and where it fits. Use <strong>View code</strong> to jump to its definition in the ZIP source. Methods with an initial underscore are internal helpers.</p>
+<details><summary>Publication_Trendv2.py · 24 functions</summary><div class="function-list"><article class="function" id="fn-Publication_Trendv2-__init__"><h4><code>__init__()</code></h4><p>Creates an analyzer with a workbook folder, version, window lengths and anomaly threshold.</p><dl><dt>Input → output</dt><dd>Takes configuration. Stores defaults such as Daily, 5/60/100 observations, and threshold 2.</dd><dt>Why it exists</dt><dd>Keeps the rules and folder settings together for each run.</dd><dt>Where it fits</dt><dd>Started by the dashboard or CLI before loading files.</dd></dl><a href="#code-Publication_Trendv2-__init__" data-reveal>View code · line 33</a></article><article class="function" id="fn-Publication_Trendv2-setup_logging"><h4><code>setup_logging()</code></h4><p>Opens the audit log for a COB if one does not already exist.</p><dl><dt>Input → output</dt><dd>COB date → log path. The first run opens a write stream.</dd><dt>Why it exists</dt><dd>Keeps a record of that date’s first run and avoids overwriting it.</dd><dt>Where it fits</dt><dd>Called through _log() or when a date is passed to the constructor.</dd></dl><a href="#code-Publication_Trendv2-setup_logging" data-reveal>View code · line 65</a></article><article class="function" id="fn-Publication_Trendv2-close_logging"><h4><code>close_logging()</code></h4><p>Flushes and closes any open audit-log stream.</p><dl><dt>Input → output</dt><dd>Uses the analyzer’s open logging handlers.</dd><dt>Why it exists</dt><dd>Releases the file handle after a run, including after an error.</dd><dt>Where it fits</dt><dd>Called by run_trend_analysis() after success or failure and before switching logs.</dd></dl><a href="#code-Publication_Trendv2-close_logging" data-reveal>View code · line 83</a></article><article class="function" id="fn-Publication_Trendv2-_log"><h4><code>_log()</code></h4><p>Makes sure calls for a COB point to the right audit log.</p><dl><dt>Input → output</dt><dd>COB date → selects the log used by the analyzer.</dd><dt>Why it exists</dt><dd>Allows direct calls to loading or calculation to use the same audit convention.</dd><dt>Where it fits</dt><dd>Used by run_trend_analysis(), load_daily_data(), and calculate_trend_parameters().</dd></dl><a href="#code-Publication_Trendv2-_log" data-reveal>View code · line 89</a></article><article class="function" id="fn-Publication_Trendv2-generate_filename"><h4><code>generate_filename()</code></h4><p>Turns a date into a monthly workbook name.</p><dl><dt>Input → output</dt><dd>2026-11-25 → Flat_Conso_Reports_Nov.xlsx.</dd><dt>Why it exists</dt><dd>Applies the workbook naming rule consistently.</dd><dt>Where it fits</dt><dd>Used by generate_file_path().</dd></dl><a href="#code-Publication_Trendv2-generate_filename" data-reveal>View code · line 94</a></article><article class="function" id="fn-Publication_Trendv2-generate_file_path"><h4><code>generate_file_path()</code></h4><p>Adds the year folder to the monthly workbook name.</p><dl><dt>Input → output</dt><dd>COB date → a path such as demo_data/2026/Flat_Conso_Reports_Nov.xlsx.</dd><dt>Why it exists</dt><dd>The same month name appears in different years.</dd><dt>Where it fits</dt><dd>Used by the loader and the path helpers.</dd></dl><a href="#code-Publication_Trendv2-generate_file_path" data-reveal>View code · line 97</a></article><article class="function" id="fn-Publication_Trendv2-file_exists"><h4><code>file_exists()</code></h4><p>Checks whether the workbook for a COB exists.</p><dl><dt>Input → output</dt><dd>COB date → True or False.</dd><dt>Why it exists</dt><dd>The selected workbook must exist before analysis starts.</dd><dt>Where it fits</dt><dd>Called by load_daily_data().</dd></dl><a href="#code-Publication_Trendv2-file_exists" data-reveal>View code · line 101</a></article><article class="function" id="fn-Publication_Trendv2-get_latest_cob_by_version"><h4><code>get_latest_cob_by_version()</code></h4><p>Finds the newest usable date for Daily, Flash and Final separately.</p><dl><dt>Input → output</dt><dd>Workbook folder → mapping of version to latest date or None.</dd><dt>Why it exists</dt><dd>Makes the default date follow the available data.</dd><dt>Where it fits</dt><dd>Used by dashboard latest_daily_cob() and the CLI.</dd></dl><a href="#code-Publication_Trendv2-get_latest_cob_by_version" data-reveal>View code · line 104</a></article><article class="function" id="fn-Publication_Trendv2-load_daily_data"><h4><code>load_daily_data()</code></h4><p>Reads workbooks backwards, filters the version, normalizes dates and checks duplicate keys.</p><dl><dt>Input → output</dt><dd>Selected COB and lookback settings → ordered history DataFrame in kEUR.</dd><dt>Why it exists</dt><dd>All tabs need the same cleaned observations and enough prior data to score them.</dd><dt>Where it fits</dt><dd>Called by _run_trend_analysis_impl() and by several standalone analyzer methods.</dd></dl><a href="#code-Publication_Trendv2-load_daily_data" data-reveal>View code · line 128</a></article><article class="function" id="fn-Publication_Trendv2-_read_month"><h4><code>_read_month()</code></h4><p>Reads and validates one monthly workbook.</p><dl><dt>Input → output</dt><dd>Workbook path and cutoff date → normalized rows for the requested version.</dd><dt>Why it exists</dt><dd>Gives the month-loading loop one job per step and reports invalid dates or P&amp;L with the filename.</dd><dt>Where it fits</dt><dd>Called by load_daily_data().</dd></dl><a href="#code-Publication_Trendv2-_read_month" data-reveal>View code · line 217</a></article><article class="function" id="fn-Publication_Trendv2-_has_heatmap_history"><h4><code>_has_heatmap_history()</code></h4><p>Checks whether each visible pair has enough older observations for the broad window.</p><dl><dt>Input → output</dt><dd>Accumulated history, visible COB count and oldest loaded month → True or False.</dd><dt>Why it exists</dt><dd>The oldest heatmap cell needs its own earlier history, even when the latest cell has enough.</dd><dt>Where it fits</dt><dd>Used only by load_daily_data() when it loads for the heatmap.</dd></dl><a href="#code-Publication_Trendv2-_has_heatmap_history" data-reveal>View code · line 255</a></article><article class="function" id="fn-Publication_Trendv2-_window"><h4><code>_window()</code></h4><p>Selects the earlier rows for one baseline using the positions of the dates.</p><dl><dt>Input → output</dt><dd>History, scoring date and window name → slice of older rows.</dd><dt>Why it exists</dt><dd>Keeps the value being judged out of its own baseline. A sorted history can be sliced without repeatedly sorting or scanning rows for a date filter.</dd><dt>Where it fits</dt><dd>Called by the trend table, heatmap scoring, and distribution lookups.</dd></dl><a href="#code-Publication_Trendv2-_window" data-reveal>View code · line 277</a></article><article class="function" id="fn-Publication_Trendv2-_score_baseline"><h4><code>_score_baseline()</code></h4><p>Calculates the historical mean and sample standard deviation, then scores the current value.</p><dl><dt>Input → output</dt><dd>Reference P&amp;L values and current P&amp;L → mean, standard deviation, z-score and anomaly flag.</dd><dt>Why it exists</dt><dd>Shares the same rules for heatmap and export, including zero spread.</dd><dt>Where it fits</dt><dd>Called by _stats() and get_heatmap_statistics().</dd></dl><a href="#code-Publication_Trendv2-_score_baseline" data-reveal>View code · line 293</a></article><article class="function" id="fn-Publication_Trendv2-_stats"><h4><code>_stats()</code></h4><p>Builds the full set of trend metrics, including slope, movement, and window dates.</p><dl><dt>Input → output</dt><dd>Window rows, current amount and window name → named metrics and status.</dd><dt>Why it exists</dt><dd>Excel and the trend table need richer statistics than the heatmap.</dd><dt>Where it fits</dt><dd>Used by calculate_trend_parameters() and get_daily_pnl_distribution(). Calls _score_baseline() when sufficient history exists.</dd></dl><a href="#code-Publication_Trendv2-_stats" data-reveal>View code · line 304</a></article><article class="function" id="fn-Publication_Trendv2-calculate_trend_parameters"><h4><code>calculate_trend_parameters()</code></h4><p>Scores the selected date for every report and indicator with a current value.</p><dl><dt>Input → output</dt><dd>Clean history and selected COB → one row per current pair with results for all six windows.</dd><dt>Why it exists</dt><dd>Creates the main Trend table and the metrics consumed by Threshold Analysis.</dd><dt>Where it fits</dt><dd>Called by _run_trend_analysis_impl() and generate_trend_parameters().</dd></dl><a href="#code-Publication_Trendv2-calculate_trend_parameters" data-reveal>View code · line 339</a></article><article class="function" id="fn-Publication_Trendv2-get_heatmap_statistics"><h4><code>get_heatmap_statistics()</code></h4><p>Scores each requested date for the same report and indicator.</p><dl><dt>Input → output</dt><dd>Filtered history, dates and window → one score and status row per observed cell.</dd><dt>Why it exists</dt><dd>Each cell gets its own baseline. This path skips slope, min and max because these views only need the mean, spread, z-score and status.</dd><dt>Where it fits</dt><dd>Feeds generate_zscore_heatmap() and show_anomaly_overview(). Shares _score_baseline() with the trend table.</dd></dl><a href="#code-Publication_Trendv2-get_heatmap_statistics" data-reveal>View code · line 401</a></article><article class="function" id="fn-Publication_Trendv2-generate_trend_parameters"><h4><code>generate_trend_parameters()</code></h4><p>Loads history and calculates six-window trend rows in one call.</p><dl><dt>Input → output</dt><dd>Selected date and optional month count → Trend DataFrame.</dd><dt>Why it exists</dt><dd>Useful when a Python caller only needs the trend metrics.</dd><dt>Where it fits</dt><dd>Standalone analyzer helper. The main entry points use run_trend_analysis() for the combined results.</dd></dl><a href="#code-Publication_Trendv2-generate_trend_parameters" data-reveal>View code · line 443</a></article><article class="function" id="fn-Publication_Trendv2-_month_business_days"><h4><code>_month_business_days()</code></h4><p>Lists Monday-to-Friday dates for a month, skipping configured exceptions.</p><dl><dt>Input → output</dt><dd>Calendar month → eligible dates.</dd><dt>Why it exists</dt><dd>Creates a business-day sequence to compare with another month.</dd><dt>Where it fits</dt><dd>Used by the previous-month date mapping and prior month day number.</dd></dl><a href="#code-Publication_Trendv2-_month_business_days" data-reveal>View code · line 448</a></article><article class="function" id="fn-Publication_Trendv2-select_previous_month_cob"><h4><code>select_previous_month_cob()</code></h4><p>Chooses the matching prior-month business date, adjusting near the middle if lengths differ.</p><dl><dt>Input → output</dt><dd>Current COB → previous-month COB.</dd><dt>Why it exists</dt><dd>Supports comparable business-day positions when months have different lengths.</dd><dt>Where it fits</dt><dd>Called by get_previous_month_comparison().</dd></dl><a href="#code-Publication_Trendv2-select_previous_month_cob" data-reveal>View code · line 460</a></article><article class="function" id="fn-Publication_Trendv2-get_previous_month_comparison"><h4><code>get_previous_month_comparison()</code></h4><p>Matches selected-month dates and pairs against their corresponding prior-month records.</p><dl><dt>Input → output</dt><dd>History, selected COB and count → comparison rows, absolute change and percentage change.</dd><dt>Why it exists</dt><dd>Makes current and prior P&amp;L directly comparable by report and indicator.</dd><dt>Where it fits</dt><dd>Called by _run_trend_analysis_impl().</dd></dl><a href="#code-Publication_Trendv2-get_previous_month_comparison" data-reveal>View code · line 499</a></article><article class="function" id="fn-Publication_Trendv2-run_trend_analysis"><h4><code>run_trend_analysis()</code></h4><p>Runs the full analysis and records success or failure in the audit log.</p><dl><dt>Input → output</dt><dd>Selected COB, comparison count, lookback and options → history, trend and comparison.</dd><dt>Why it exists</dt><dd>One shared entry point keeps the dashboard and command-line export aligned.</dd><dt>Where it fits</dt><dd>Called by load_trend() and the CLI. Delegates to _run_trend_analysis_impl().</dd></dl><a href="#code-Publication_Trendv2-run_trend_analysis" data-reveal>View code · line 568</a></article><article class="function" id="fn-Publication_Trendv2-_run_trend_analysis_impl"><h4><code>_run_trend_analysis_impl()</code></h4><p>Loads history, scores the selected date and joins previous-month results.</p><dl><dt>Input → output</dt><dd>Same calculation inputs → dictionary of three DataFrames.</dd><dt>Why it exists</dt><dd>Keeps the calculation sequence separate from audit wrapping.</dd><dt>Where it fits</dt><dd>Called by run_trend_analysis(). Joins selected-date comparisons into trend.</dd></dl><a href="#code-Publication_Trendv2-_run_trend_analysis_impl" data-reveal>View code · line 617</a></article><article class="function" id="fn-Publication_Trendv2-get_daily_pnl_distribution"><h4><code>get_daily_pnl_distribution()</code></h4><p>Returns the historical values, bounds and score for one pair and window.</p><dl><dt>Input → output</dt><dd>Date, window, report and indicator → values, bounds, score and status dictionary.</dd><dt>Why it exists</dt><dd>Makes a pair’s distribution easy to consume from another script.</dd><dt>Where it fits</dt><dd>Available helper. The current dashboard threshold tab builds its chart using _window() and the trend table.</dd></dl><a href="#code-Publication_Trendv2-get_daily_pnl_distribution" data-reveal>View code · line 659</a></article><article class="function" id="fn-Publication_Trendv2-get_previous_daily_pnl"><h4><code>get_previous_daily_pnl()</code></h4><p>Turns recent history into a grid with a column per COB, newest first.</p><dl><dt>Input → output</dt><dd>As-of date, count and optional history → P&amp;L grid in raw kEUR.</dd><dt>Why it exists</dt><dd>Useful for recent-date comparisons in Python.</dd><dt>Where it fits</dt><dd>Available helper. The current chart and Excel paths use history_to_pivot().</dd></dl><a href="#code-Publication_Trendv2-get_previous_daily_pnl" data-reveal>View code · line 694</a></article></div></details>
+<details><summary>Heatmap_Trend.py · 5 functions</summary><div class="function-list"><article class="function" id="fn-Heatmap_Trend-generate_line_graph"><h4><code>generate_line_graph()</code></h4><p>Draws a separate daily P&amp;L line for each report-and-indicator pair.</p><dl><dt>Input → output</dt><dd>Pivot and optional report, indicators and date count → Plotly figure.</dd><dt>Why it exists</dt><dd>Shows the daily movement of each selected pair.</dd><dt>Where it fits</dt><dd>Called by show_line_graphs().</dd></dl><a href="#code-Heatmap_Trend-generate_line_graph" data-reveal>View code · line 9</a></article><article class="function" id="fn-Heatmap_Trend-history_to_pivot"><h4><code>history_to_pivot()</code></h4><p>Turns long history into a wide grid and divides kEUR by 1,000.</p><dl><dt>Input → output</dt><dd>History and as-of date → mEUR grid with newest dates first.</dd><dt>Why it exists</dt><dd>Plotly line graphs and the Excel heatmap can share the same date layout.</dd><dt>Where it fits</dt><dd>Used by dashboard main() and make_excel().</dd></dl><a href="#code-Heatmap_Trend-history_to_pivot" data-reveal>View code · line 41</a></article><article class="function" id="fn-Heatmap_Trend-generate_report_line_graph"><h4><code>generate_report_line_graph()</code></h4><p>Sums selected indicator values for each report and draws one line per report.</p><dl><dt>Input → output</dt><dd>Filtered pivot and date count → Plotly figure.</dd><dt>Why it exists</dt><dd>Shows report-level movement after applying the indicator selection.</dd><dt>Where it fits</dt><dd>Called by show_line_graphs().</dd></dl><a href="#code-Heatmap_Trend-generate_report_line_graph" data-reveal>View code · line 56</a></article><article class="function" id="fn-Heatmap_Trend-generate_zscore_heatmap"><h4><code>generate_zscore_heatmap()</code></h4><p>Draws P&amp;L labels, z-score colours, and descriptive hover text.</p><dl><dt>Input → output</dt><dd>Cell statistics, ordered COBs and anomaly threshold → Plotly figure.</dd><dt>Why it exists</dt><dd>Shows how unusual a number is while keeping the actual P&amp;L visible.</dd><dt>Where it fits</dt><dd>Called by dashboard main(). Uses scores from get_heatmap_statistics().</dd></dl><a href="#code-Heatmap_Trend-generate_zscore_heatmap" data-reveal>View code · line 87</a></article><article class="function" id="fn-Heatmap_Trend-amount"><h4><code>amount()</code></h4><p>Formats one number in mEUR or shows a dash for missing values.</p><dl><dt>Input → output</dt><dd>Raw kEUR amount → tooltip text.</dd><dt>Why it exists</dt><dd>Keeps money units consistent in the hover information.</dd><dt>Where it fits</dt><dd>Nested helper inside generate_zscore_heatmap().</dd></dl><a href="#code-Heatmap_Trend-amount" data-reveal>View code · line 97</a></article></div></details>
+<details><summary>export_utils.py · 5 functions</summary><div class="function-list"><article class="function" id="fn-export_utils-convert_to_meur"><h4><code>convert_to_meur()</code></h4><p>Copies a table and scales designated monetary columns to mEUR.</p><dl><dt>Input → output</dt><dd>Trend DataFrame in kEUR → copy with monetary columns divided by 1,000.</dd><dt>Why it exists</dt><dd>Protects the calculation result from mutation and leaves z-scores and percentages alone.</dd><dt>Where it fits</dt><dd>Called by make_excel() for the Trend sheet.</dd></dl><a href="#code-export_utils-convert_to_meur" data-reveal>View code · line 14</a></article><article class="function" id="fn-export_utils-date_as_text"><h4><code>date_as_text()</code></h4><p>Turns a date column into YYYY-MM-DD strings.</p><dl><dt>Input → output</dt><dd>Date Series → text Series, blank when unavailable.</dd><dt>Why it exists</dt><dd>Keeps exported dates consistent and readable in Excel.</dd><dt>Where it fits</dt><dd>Called by make_excel() for date-like Trend columns.</dd></dl><a href="#code-export_utils-date_as_text" data-reveal>View code · line 24</a></article><article class="function" id="fn-export_utils-_style_header"><h4><code>_style_header()</code></h4><p>Applies colour, font and alignment to a sheet’s first row.</p><dl><dt>Input → output</dt><dd>Excel worksheet → styled header in place.</dd><dt>Why it exists</dt><dd>Makes column headings distinct and readable.</dd><dt>Where it fits</dt><dd>Called by make_excel() for both sheets.</dd></dl><a href="#code-export_utils-_style_header" data-reveal>View code · line 29</a></article><article class="function" id="fn-export_utils-_heat_colour"><h4><code>_heat_colour()</code></h4><p>Picks a red, neutral or green fill from the signed P&amp;L magnitude.</p><dl><dt>Input → output</dt><dd>Cell value and overall magnitude limit → colour code or None.</dd><dt>Why it exists</dt><dd>Highlights relatively large gain and loss values in the Excel heatmap.</dd><dt>Where it fits</dt><dd>Called by make_excel() for Heatmap Data cells.</dd></dl><a href="#code-export_utils-_heat_colour" data-reveal>View code · line 37</a></article><article class="function" id="fn-export_utils-make_excel"><h4><code>make_excel()</code></h4><p>Creates and formats the Trend and Heatmap Data sheets in memory.</p><dl><dt>Input → output</dt><dd>Analysis result dictionary → XLSX bytes.</dd><dt>Why it exists</dt><dd>Lets Streamlit download and the CLI write the same workbook format.</dd><dt>Where it fits</dt><dd>Called by show_excel_export() and run_trend.py main().</dd></dl><a href="#code-export_utils-make_excel" data-reveal>View code · line 59</a></article></div></details>
+<details><summary>Trend_dashboard.py · 7 functions</summary><div class="function-list"><article class="function" id="fn-Trend_dashboard-latest_daily_cob"><h4><code>latest_daily_cob()</code></h4><p>Returns the newest Daily date found in the input folder.</p><dl><dt>Input → output</dt><dd>Workbook folder → latest date string or None.</dd><dt>Why it exists</dt><dd>Gives the date picker a data-driven default.</dd><dt>Where it fits</dt><dd>Called by dashboard main(). Wraps get_latest_cob_by_version().</dd></dl><a href="#code-Trend_dashboard-latest_daily_cob" data-reveal>View code · line 31</a></article><article class="function" id="fn-Trend_dashboard-load_trend"><h4><code>load_trend()</code></h4><p>Runs the analyzer with the selected options.</p><dl><dt>Input → output</dt><dd>Folder, COB and analysis options → three DataFrames in a dictionary.</dd><dt>Why it exists</dt><dd>A five-minute cache lets widget interactions reuse the results for the same inputs.</dd><dt>Where it fits</dt><dd>Called by dashboard main() and show_excel_export().</dd></dl><a href="#code-Trend_dashboard-load_trend" data-reveal>View code · line 36</a></article><article class="function" id="fn-Trend_dashboard-show_anomaly_overview"><h4><code>show_anomaly_overview()</code></h4><p>Shows a status count and a detail table for the selected COB.</p><dl><dt>Input → output</dt><dd>Cell stats, COB, window and threshold → Streamlit metrics and table.</dd><dt>Why it exists</dt><dd>Makes flagged pairs and missing baselines easier to find.</dd><dt>Where it fits</dt><dd>Called by dashboard main(). Receives the same statistics as the heatmap.</dd></dl><a href="#code-Trend_dashboard-show_anomaly_overview" data-reveal>View code · line 51</a></article><article class="function" id="fn-Trend_dashboard-show_line_graphs"><h4><code>show_line_graphs()</code></h4><p>Displays both report totals and per-pair line charts.</p><dl><dt>Input → output</dt><dd>Filtered P&amp;L pivot and date count → two Streamlit charts.</dd><dt>Why it exists</dt><dd>Lets readers see overall and individual movements over time.</dd><dt>Where it fits</dt><dd>Called by dashboard main(). Uses generate_report_line_graph() and generate_line_graph().</dd></dl><a href="#code-Trend_dashboard-show_line_graphs" data-reveal>View code · line 88</a></article><article class="function" id="fn-Trend_dashboard-show_excel_export"><h4><code>show_excel_export()</code></h4><p>Reads export options and, on submit, prepares a downloadable XLSX.</p><dl><dt>Input → output</dt><dd>Workbook root, selected COB and form inputs → download button.</dd><dt>Why it exists</dt><dd>Lets a reader export analysis independently of the main tab controls.</dd><dt>Where it fits</dt><dd>Called by dashboard main(). Uses load_trend() and make_excel().</dd></dl><a href="#code-Trend_dashboard-show_excel_export" data-reveal>View code · line 101</a></article><article class="function" id="fn-Trend_dashboard-show_threshold_analysis"><h4><code>show_threshold_analysis()</code></h4><p>Draws historical P&amp;L as a frequency chart with mean, bounds and current value.</p><dl><dt>Input → output</dt><dd>Analyzer, trend table, history and COB → histogram for chosen pair and window.</dd><dt>Why it exists</dt><dd>Helps explain a score by showing where the current value sits among prior observations.</dd><dt>Where it fits</dt><dd>Called by dashboard main(). Uses _window() and the matching trend row.</dd></dl><a href="#code-Trend_dashboard-show_threshold_analysis" data-reveal>View code · line 132</a></article><article class="function" id="fn-Trend_dashboard-main"><h4><code>main()</code></h4><p>Creates the widgets, gets filtered history, and connects the five tabs.</p><dl><dt>Input → output</dt><dd>Sidebar folder and user selections → rendered dashboard.</dd><dt>Why it exists</dt><dd>Coordinates the page while the analyzer and helpers do the calculations and formatting.</dd><dt>Where it fits</dt><dd>Starts when you run python -m streamlit run Trend_dashboard.py.</dd></dl><a href="#code-Trend_dashboard-main" data-reveal>View code · line 179</a></article></div></details>
+<details><summary>run_trend.py · 1 functions</summary><div class="function-list"><article class="function" id="fn-run_trend-main"><h4><code>main()</code></h4><p>Reads and validates command-line arguments, runs the shared engine and writes a workbook.</p><dl><dt>Input → output</dt><dd>Folder, optional version/COB, comparison options and output path → XLSX file.</dd><dt>Why it exists</dt><dd>Supports scheduled or manual Excel export without opening Streamlit.</dd><dt>Where it fits</dt><dd>Starts when you run python run_trend.py. Uses run_trend_analysis() and make_excel().</dd></dl><a href="#code-run_trend-main" data-reveal>View code · line 11</a></article></div></details>
+</section>
+
+<section id="calculations">
+<h2>Trend calculations</h2>
+<p><code>_window()</code> uses observations strictly before the COB being scored. <code>_stats()</code> returns the mean, sample standard deviation, z-score, anomaly flag, slope-based direction, range, changes, and observation count when enough history exists.</p>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Window</th><th scope="col">Historical sample</th><th scope="col">Minimum observations</th></tr></thead>
+<tbody>
+<tr><td>Short</td><td>Last 5 observed COBs</td><td>5</td></tr>
+<tr><td>Long</td><td>Last 60 observed COBs</td><td>60</td></tr>
+<tr><td>Broad</td><td>Last 100 observed COBs</td><td>100</td></tr>
+<tr><td>Month</td><td>Current calendar month before the COB</td><td>7</td></tr>
+<tr><td>Quarter</td><td>Current calendar quarter before the COB</td><td>10</td></tr>
+<tr><td>Full year</td><td>Current calendar year before the COB</td><td>20</td></tr>
+</tbody></table></div>
+<p>For the demo Rates pair, the five historical values are −1,200, −600, 0, 600, and 1,200 kEUR. Their mean is 0 and their sample standard deviation is about 948.68 kEUR. The current value of 3,000 kEUR gives <strong>z = (3,000 − 0) / 948.68 ≈ +3.16</strong>. By default, the analyzer flags <code>|z| ≥ 2</code>. If the sample is constant, matching P&amp;L gets <code>z = 0</code>. A different value is flagged with an undefined z-score.</p>
+<div class="note"><strong>How the heatmap does less work.</strong> Both the export and dashboard use <code>_score_baseline()</code> for the core maths. The export also calculates slope, historical change and range. The heatmap only needs enough data to display the cell and its tooltip, so it skips those extra calculations. The chart fills its grid from the observed rows and leaves the other cells blank.</div>
+<h3>Previous-month comparison</h3>
+<p><code>select_previous_month_cob()</code> aligns the two months on a weekday calendar. It reuses or skips dates around the middle when the months have different business-day counts. <code>get_previous_month_comparison()</code> then left-joins by mapped date, report, and indicator, so unmatched prior observations remain blank. Percentage change divides the difference by the absolute prior value and stays blank when the prior value is zero. The engine keeps COB dates as normalized datetimes through the merge.</p>
+</section>
+
+<section id="dashboard">
+<h2>Dashboard and Excel</h2>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Tab</th><th scope="col">How it works</th></tr></thead>
+<tbody>
+<tr><td>Heatmap</td><td><code>get_heatmap_statistics()</code> scores each cell against history before that cell’s date. Cell text shows daily P&amp;L in mEUR and the signed z-score. Absolute score selects the light green, medium green, amber or red band. Gray indicates an unavailable score; a blank cell means no observation. Hover shows P&amp;L, mean, standard deviation, score, and status.</td></tr>
+<tr><td>Anomaly Overview</td><td>Filters the same heatmap statistics to the selected COB. It summarizes Flagged, Within range, and Insufficient history. The Flagged only toggle filters the detail table.</td></tr>
+<tr><td>Line Graphs</td><td>Shows one line per report and indicator, plus a separate report-level view summing the selected indicators.</td></tr>
+<tr><td>Save File</td><td>Runs the analyzer for the export COB and passes the result dictionary to <code>make_excel()</code>. Streamlit downloads the returned bytes.</td></tr>
+<tr><td>Threshold Analysis</td><td>Plots historical P&amp;L in mEUR on the horizontal axis and observation counts on the vertical axis. Lines show the mean, mean ± threshold × sample standard deviation, and the current P&amp;L.</td></tr>
+</tbody></table></div>
+<p><code>make_excel()</code> writes <strong>Trend</strong> and <strong>Heatmap Data</strong>. Trend starts with COB, report, indicator and daily P&amp;L. The heatmap sheet orders dates newest first and rotates the date headers. Its fills encode signed <strong>P&amp;L magnitude</strong>. The Streamlit heatmap encodes signed <strong>z-score</strong>. Both show P&amp;L in mEUR. Z-scores and percentage changes retain their original scale.</p>
+<p>The analyzer creates one audit log per COB under <code>&lt;workbook root&gt;/logs/log_trend_YYYYMMDD.log</code>. The first run writes the log. A later run for the same date keeps the original log even if parameters change.</p>
+</section>
+
+<section id="verification">
+<h2>Verify the build</h2>
+<ol>
+<li>Run the starter and check the four rows against the sample results table.</li>
+<li>In Streamlit, select 25 November and Short. Confirm that the Rates tooltip and Anomaly Overview row both show about <code>+3.16</code>.</li>
+<li>In Threshold Analysis, choose Rates and Short. The sum of the histogram bin counts should be five. The current value should lie above the upper threshold.</li>
+<li>Open the Excel export. Check that Rates shows <code>3.00</code> in <code>daily</code>, its COB is stored as ISO text, and the Heatmap Data headers run newest first.</li>
+<li>Rerun the same COB and check that the original audit file remains in place.</li>
+</ol>
+</section>
+
+<section id="next">
+<h2>Next steps</h2>
+<ol>
+<li><strong>Use the official reporting calendar.</strong> The current mapping uses weekdays and one configured exception. Add your holiday calendar and test months with unequal business-day counts and January rollover.</li>
+<li><strong>Tighten validation and regression tests.</strong> Validate <code>bus_count</code> alongside the other required columns before comparison. Add fixtures for duplicate keys, missing months, a zero prior-month amount, sparse history, and zero variance.</li>
+<li><strong>Clarify the export period control.</strong> The current <code>trend_period</code> parameter is accepted and logged, but the calculation path evaluates all six windows. Decide what the selection should control, then connect it to the analyzer and test each option.</li>
+<li><strong>Define the Excel heatmap requirement.</strong> If exported colours should match Streamlit, reuse the scores in the exporter and keep the actual P&amp;L values as cell text.</li>
+<li><strong>Measure data loading before optimizing.</strong> Time monthly Excel reads and per-cell scoring with representative history. If they dominate, evaluate cached normalized data or Parquet and compare the results against the current engine.</li>
+</ol>
+</section>
+
+<section id="source">
+<h2>Complete source</h2>
+<p>These are the seven source and project files from <code>Reporting_Trends_With_Sample_Data.zip</code>. Expand a file to read it in the browser or save it under its original name.</p>
+<details><summary>Publication_Trendv2.py</summary><div class="codebox"><div class="codehead"><span>Publication_Trendv2.py</span><div><button type="button" data-action="copy" aria-label="Copy Publication_Trendv2.py">Copy</button><button type="button" data-action="save" data-filename="Publication_Trendv2.py" aria-label="Save Publication_Trendv2.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Daily report/indicator trend analysis. Input: root/YYYY/Flat_Conso_Reports_Mon.xlsx.&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+from time import perf_counter
+
+import numpy as np
+import pandas as pd
+
+PERIODS = (&quot;short&quot;, &quot;long&quot;, &quot;broad&quot;, &quot;month&quot;, &quot;quarter&quot;, &quot;fullyear&quot;)
+MINIMUM = {
+    &quot;short&quot;: 5,
+    &quot;long&quot;: 60,
+    &quot;broad&quot;: 100,
+    &quot;month&quot;: 7,
+    &quot;quarter&quot;: 10,
+    &quot;fullyear&quot;: 20,
+}
+REQUIRED = (&quot;cob_date&quot;, &quot;version&quot;, &quot;report_name&quot;, &quot;indicator&quot;, &quot;daily&quot;)
+PAIR_COLUMNS = [&quot;report_name&quot;, &quot;indicator&quot;]
+COB_KEY = [&quot;cob_date&quot;, *PAIR_COLUMNS]
+CALENDAR_WINDOWS = {&quot;month&quot;: &quot;M&quot;, &quot;quarter&quot;: &quot;Q&quot;, &quot;fullyear&quot;: &quot;Y&quot;}
+TREND_METRICS = (&quot;avg&quot;, &quot;std&quot;, &quot;zscore&quot;, &quot;anomaly&quot;, &quot;direction&quot;)
+CHANGE_METRICS = (&quot;min&quot;, &quot;max&quot;, &quot;change&quot;, &quot;change_pct&quot;, &quot;slope&quot;)
+WINDOW_METADATA = (&quot;start&quot;, &quot;end&quot;, &quot;observations&quot;, &quot;status&quot;)
+
+
+class ReportTrendAnalyzer:
+    EXCEPTION_COBS = frozenset({&quot;2026-01-01&quot;})
+
+<span class="code-line" id="code-Publication_Trendv2-__init__">    def __init__(</span>
+        self,
+        root_folder,
+        version=&quot;Daily&quot;,
+        short_window=5,
+        long_window=60,
+        broad_window=100,
+        anomaly_z_threshold=2.0,
+        log_folder=None,
+        as_of_date=None,
+    ):
+        self.root_folder = Path(root_folder)
+        self.version = version
+        self.windows = {
+            &quot;short&quot;: short_window,
+            &quot;long&quot;: long_window,
+            &quot;broad&quot;: broad_window,
+        }
+        if not (2 &lt;= short_window &lt;= long_window &lt;= broad_window):
+            raise ValueError(&quot;Invalid window sizes&quot;)
+        self.anomaly_z_threshold = float(anomaly_z_threshold)
+        if not np.isfinite(self.anomaly_z_threshold) or self.anomaly_z_threshold &lt;= 0:
+            raise ValueError(&quot;The anomaly threshold must be positive and finite.&quot;)
+        self.log_folder = Path(log_folder) if log_folder else self.root_folder / &quot;logs&quot;
+        self.logger = logging.Logger(&quot;trend&quot;)
+        self.logger.setLevel(logging.INFO)
+        self.logger.propagate = False
+        self.logger.addHandler(logging.NullHandler())
+        self.log_path = None
+        if as_of_date is not None:
+            self.setup_logging(as_of_date)
+
+<span class="code-line" id="code-Publication_Trendv2-setup_logging">    def setup_logging(self, cob_date):</span>
+        &quot;&quot;&quot;Write an audit log once per COB; never overwrite an existing audit.&quot;&quot;&quot;
+        self.close_logging()
+        cob = pd.Timestamp(cob_date).normalize()
+        self.log_folder.mkdir(parents=True, exist_ok=True)
+        self.log_path = self.log_folder / f&quot;log_trend_{cob:%Y%m%d}.log&quot;
+        # A prior execution already recorded this COB&#x27;s audit. Do not append.
+        # Exclusive creation avoids overwriting a log made by another process.
+        try:
+            handler = logging.FileHandler(self.log_path, mode=&quot;x&quot;, encoding=&quot;utf-8&quot;)
+        except FileExistsError:
+            return self.log_path
+        handler.setFormatter(
+            logging.Formatter(&quot;%(asctime)s | %(levelname)-8s | %(message)s&quot;)
+        )
+        self.logger.addHandler(handler)
+        return self.log_path
+
+<span class="code-line" id="code-Publication_Trendv2-close_logging">    def close_logging(self):</span>
+        for handler in self.logger.handlers[:]:
+            if isinstance(handler, logging.FileHandler):
+                self.logger.removeHandler(handler)
+                handler.close()
+
+<span class="code-line" id="code-Publication_Trendv2-_log">    def _log(self, cob):</span>
+        expected = self.log_folder / f&quot;log_trend_{pd.Timestamp(cob):%Y%m%d}.log&quot;
+        if self.log_path != expected:
+            self.setup_logging(cob)
+
+<span class="code-line" id="code-Publication_Trendv2-generate_filename">    def generate_filename(self, cob_date):</span>
+        return f&quot;Flat_Conso_Reports_{pd.Timestamp(cob_date):%b}.xlsx&quot;
+
+<span class="code-line" id="code-Publication_Trendv2-generate_file_path">    def generate_file_path(self, cob_date):</span>
+        d = pd.Timestamp(cob_date)
+        return self.root_folder / str(d.year) / self.generate_filename(d)
+
+<span class="code-line" id="code-Publication_Trendv2-file_exists">    def file_exists(self, cob_date):</span>
+        return self.generate_file_path(cob_date).is_file()
+
+<span class="code-line" id="code-Publication_Trendv2-get_latest_cob_by_version">    def get_latest_cob_by_version(self):</span>
+        &quot;&quot;&quot;Read each available monthly workbook and find max COB per version.&quot;&quot;&quot;
+        result = {&quot;daily&quot;: None, &quot;flash&quot;: None, &quot;final&quot;: None}
+        for path in sorted(self.root_folder.glob(&quot;*/Flat_Conso_Reports_*.xlsx&quot;)):
+            try:
+                df = pd.read_excel(
+                    path,
+                    usecols=lambda c: str(c).strip().lower() in (&quot;cob_date&quot;, &quot;version&quot;),
+                )
+                df.columns = df.columns.str.strip().str.lower()
+                if not {&quot;cob_date&quot;, &quot;version&quot;}.issubset(df):
+                    continue
+                df[&quot;cob_date&quot;] = pd.to_datetime(df[&quot;cob_date&quot;], errors=&quot;coerce&quot;)
+                for key, group in df.groupby(
+                    df[&quot;version&quot;].astype(str).str.strip().str.lower()
+                ):
+                    if key in result and group[&quot;cob_date&quot;].notna().any():
+                        value = group[&quot;cob_date&quot;].max().normalize()
+                        if result[key] is None or value &gt; pd.Timestamp(result[key]):
+                            result[key] = value.strftime(&quot;%Y-%m-%d&quot;)
+            except Exception as exc:
+                self.logger.warning(&quot;Unable to inspect workbook %s: %s&quot;, path.name, exc)
+        return result
+
+<span class="code-line" id="code-Publication_Trendv2-load_daily_data">    def load_daily_data(self, as_of_date, months_to_load=3, *, heatmap_cobs=None):</span>
+        &quot;&quot;&quot;Load backwards across years until each current report/indicator has broad history.
+
+        Also covers the selected calendar year for full-year statistics. A missing
+        historical workbook is logged; unavailable observations are never invented.
+        &quot;&quot;&quot;
+        asof = pd.Timestamp(as_of_date).normalize()
+        self._log(asof)
+        current_path = self.generate_file_path(asof)
+        if not self.file_exists(asof):
+            raise FileNotFoundError(
+                f&quot;Missing selected-COB workbook: {current_path.name}&quot;
+            )
+        period = asof.to_period(&quot;M&quot;)
+        available = sorted(
+            (
+                p
+                for p in self.root_folder.glob(&quot;*/Flat_Conso_Reports_*.xlsx&quot;)
+                if p.is_file()
+            )
+        )
+        earliest_year = min(
+            (int(p.parent.name) for p in available if p.parent.name.isdigit()),
+            default=asof.year,
+        )
+        earliest = pd.Period(f&quot;{earliest_year}-01&quot;, freq=&quot;M&quot;)
+        # Ensure full-year coverage, even if 100 observations are found earlier.
+        min_months = max(int(months_to_load), asof.month)
+        frames = []
+        loaded = []
+        current_keys = None
+        required = self.windows[&quot;broad&quot;]
+        month_index = 0
+        while period &gt;= earliest:
+            path = self.generate_file_path(period.start_time)
+            loaded.append(path.name)
+            if not path.is_file():
+                self.logger.warning(&quot;Missing workbook: %s&quot;, path.name)
+            else:
+                df = self._read_month(path, asof)
+                frames.append(df)
+                if period == asof.to_period(&quot;M&quot;):
+                    current_keys = set(
+                        map(
+                            tuple,
+                            df.loc[
+                                df[&quot;cob_date&quot;] == asof, [&quot;report_name&quot;, &quot;indicator&quot;]
+                            ].to_numpy(),
+                        )
+                    )
+            month_index += 1
+            if month_index &gt;= min_months and current_keys and frames:
+                accumulated = pd.concat(frames, ignore_index=True)
+                if heatmap_cobs:
+                    if self._has_heatmap_history(accumulated, heatmap_cobs, period):
+                        break
+                else:
+                    historical = accumulated.loc[accumulated[&quot;cob_date&quot;] &lt; asof]
+                    counts = historical.groupby([&quot;report_name&quot;, &quot;indicator&quot;])[
+                        &quot;cob_date&quot;
+                    ].nunique()
+                    if all(counts.get(key, 0) &gt;= required for key in current_keys):
+                        break
+            period -= 1
+        self.logger.info(&quot;Requested workbooks=%s&quot;, loaded)
+        if not frames:
+            raise ValueError(&quot;No history found&quot;)
+        data = pd.concat(frames, ignore_index=True)
+        if data.duplicated(COB_KEY).any():
+            raise ValueError(&quot;Duplicate COB/report/indicator records&quot;)
+        if current_keys:
+            hist = (
+                data[data[&quot;cob_date&quot;] &lt; asof]
+                .groupby([&quot;report_name&quot;, &quot;indicator&quot;])[&quot;cob_date&quot;]
+                .nunique()
+            )
+            lacking = {
+                str(k): int(hist.get(k, 0))
+                for k in current_keys
+                if hist.get(k, 0) &lt; required
+            }
+            if lacking:
+                self.logger.warning(
+                    &quot;Broad history below %s COBs: %s&quot;, required, lacking
+                )
+        return data.sort_values([&quot;report_name&quot;, &quot;indicator&quot;, &quot;cob_date&quot;]).reset_index(
+            drop=True
+        )
+
+<span class="code-line" id="code-Publication_Trendv2-_read_month">    def _read_month(self, path, as_of):</span>
+        &quot;&quot;&quot;Read one workbook and keep the requested version through the selected COB.&quot;&quot;&quot;
+        frame = pd.read_excel(path)
+        frame.columns = frame.columns.astype(str).str.strip().str.lower()
+        missing = set(REQUIRED) - set(frame.columns)
+        if missing:
+            raise ValueError(f&quot;{path.name}: missing {sorted(missing)}&quot;)
+
+        version = frame[&quot;version&quot;].astype(str).str.strip().str.casefold()
+        frame = frame.loc[version.eq(self.version.casefold())].copy()
+        frame[&quot;cob_date&quot;] = pd.to_datetime(
+            frame[&quot;cob_date&quot;], errors=&quot;coerce&quot;
+        ).dt.normalize()
+        if frame[&quot;cob_date&quot;].isna().any():
+            raise ValueError(f&quot;{path.name}: invalid cob_date for {self.version}&quot;)
+        frame = frame.loc[frame[&quot;cob_date&quot;].le(as_of)].copy()
+        frame[&quot;daily&quot;] = pd.to_numeric(frame[&quot;daily&quot;], errors=&quot;coerce&quot;)
+        if (
+            frame[list(REQUIRED)].isna().any().any()
+            or not np.isfinite(frame[&quot;daily&quot;]).all()
+        ):
+            raise ValueError(
+                f&quot;{path.name}: missing or invalid values for {self.version}&quot;
+            )
+
+        dates = sorted(frame[&quot;cob_date&quot;].dt.strftime(&quot;%Y-%m-%d&quot;).unique())
+        self.logger.info(
+            &quot;Workbook=%s | version=%s | matched_rows=%s | unique_reports=%s | unique_report_indicators=%s | unique_COBs=%s | COBs=%s&quot;,
+            path.name,
+            self.version,
+            len(frame),
+            frame[&quot;report_name&quot;].nunique(),
+            len(frame[PAIR_COLUMNS].drop_duplicates()),
+            len(dates),
+            dates,
+        )
+        return frame
+
+<span class="code-line" id="code-Publication_Trendv2-_has_heatmap_history">    def _has_heatmap_history(self, history, n_cobs, loaded_month):</span>
+        &quot;&quot;&quot;Check the baseline before the oldest visible observation of each pair.&quot;&quot;&quot;
+        displayed_dates = history[&quot;cob_date&quot;].drop_duplicates().nlargest(n_cobs)
+        if (
+            len(displayed_dates) &lt; n_cobs
+            or loaded_month.year &gt; displayed_dates.min().year
+        ):
+            return False
+
+        visible = history.loc[history[&quot;cob_date&quot;].isin(displayed_dates)]
+        earliest_cobs = (
+            visible.groupby(PAIR_COLUMNS)[&quot;cob_date&quot;].min().rename(&quot;baseline_end&quot;)
+        )
+        history = history.join(earliest_cobs, on=PAIR_COLUMNS)
+        baseline = history.loc[history[&quot;cob_date&quot;] &lt; history[&quot;baseline_end&quot;]]
+        counts = baseline.groupby(PAIR_COLUMNS)[&quot;cob_date&quot;].nunique()
+        return (
+            counts.reindex(earliest_cobs.index, fill_value=0)
+            .ge(self.windows[&quot;broad&quot;])
+            .all()
+        )
+
+<span class="code-line" id="code-Publication_Trendv2-_window">    def _window(self, history, as_of, period):</span>
+        &quot;&quot;&quot;Select observations strictly before the date being scored.&quot;&quot;&quot;
+        if period not in PERIODS:
+            raise ValueError(f&quot;period must be one of {PERIODS}&quot;)
+        dates = history[&quot;cob_date&quot;]
+        if not dates.is_monotonic_increasing:
+            history = history.sort_values(&quot;cob_date&quot;)
+            dates = history[&quot;cob_date&quot;]
+        end = dates.searchsorted(as_of)
+        if period in self.windows:
+            start = max(0, end - self.windows[period])
+        else:
+            calendar_start = as_of.to_period(CALENDAR_WINDOWS[period]).start_time
+            start = dates.searchsorted(calendar_start)
+        return history.iloc[start:end]
+
+<span class="code-line" id="code-Publication_Trendv2-_score_baseline">    def _score_baseline(self, values, current):</span>
+        &quot;&quot;&quot;Return mean, sample spread, z-score and anomaly for a valid baseline.&quot;&quot;&quot;
+        mean = float(np.mean(values))
+        std = float(np.std(values, ddof=1))
+        if std == 0:
+            if current == mean:
+                return mean, std, 0.0, False
+            return mean, std, None, True
+        score = (float(current) - mean) / std
+        return mean, std, score, abs(score) &gt;= self.anomaly_z_threshold
+
+<span class="code-line" id="code-Publication_Trendv2-_stats">    def _stats(self, window, current, period):</span>
+        &quot;&quot;&quot;Build the full set of export statistics for one trend window.&quot;&quot;&quot;
+        count = len(window)
+        enough_history = count &gt;= self.windows.get(period, MINIMUM[period])
+        metrics = dict.fromkeys(TREND_METRICS + CHANGE_METRICS)
+        if enough_history:
+            values = window[&quot;daily&quot;].to_numpy(dtype=float)
+            mean, std, score, flagged = self._score_baseline(values, current)
+            slope = float(np.polyfit(np.arange(count), values, 1)[0])
+            direction = &quot;Flat&quot;
+            if slope &gt; 1e-10:
+                direction = &quot;Rising&quot;
+            elif slope &lt; -1e-10:
+                direction = &quot;Falling&quot;
+            change = float(values[-1] - values[0])
+            metrics.update(
+                avg=mean,
+                std=std,
+                zscore=score,
+                anomaly=flagged,
+                direction=direction,
+                min=float(values.min()),
+                max=float(values.max()),
+                change=change,
+                change_pct=100 * change / abs(values[0]) if values[0] else None,
+                slope=slope,
+            )
+        metrics.update(
+            start=window[&quot;cob_date&quot;].min().strftime(&quot;%Y-%m-%d&quot;) if count else None,
+            end=window[&quot;cob_date&quot;].max().strftime(&quot;%Y-%m-%d&quot;) if count else None,
+            observations=count,
+            status=&quot;ok&quot; if enough_history else &quot;insufficient_data&quot;,
+        )
+        return {f&quot;{period}_{name}&quot;: value for name, value in metrics.items()}
+
+<span class="code-line" id="code-Publication_Trendv2-calculate_trend_parameters">    def calculate_trend_parameters(self, daily_data, as_of_date):</span>
+        asof = pd.Timestamp(as_of_date).normalize()
+        self._log(asof)
+        data = daily_data.copy()
+        data[&quot;cob_date&quot;] = pd.to_datetime(data[&quot;cob_date&quot;]).dt.normalize()
+        data = data[data[&quot;cob_date&quot;] &lt;= asof]
+        rows = []
+        for (report, indicator), grp in data.groupby(
+            [&quot;report_name&quot;, &quot;indicator&quot;], sort=True
+        ):
+            current = grp[grp[&quot;cob_date&quot;] == asof]
+            if current.empty:
+                continue
+            value = float(current.iloc[-1][&quot;daily&quot;])
+            row = {
+                &quot;cob_date&quot;: asof,
+                &quot;report_name&quot;: report,
+                &quot;indicator&quot;: indicator,
+                &quot;daily&quot;: value,
+                &quot;version&quot;: self.version,
+            }
+            for period in PERIODS:
+                window = self._window(grp, asof, period)
+                row.update(self._stats(window, value, period))
+            row[&quot;computed_cols&quot;] = &quot;, &quot;.join(
+                p for p in PERIODS if row[p + &quot;_status&quot;] == &quot;ok&quot;
+            )
+            rows.append(row)
+        if not rows:
+            raise ValueError(f&quot;No selected COB rows for {asof.date()}&quot;)
+        trendcols = [f&quot;{p}_{k}&quot; for p in PERIODS for k in TREND_METRICS]
+        assoccols = [f&quot;{p}_{k}&quot; for p in PERIODS for k in CHANGE_METRICS]
+        meta = [&quot;daily&quot;, &quot;version&quot;, &quot;computed_cols&quot;] + [
+            f&quot;{p}_{k}&quot; for p in PERIODS for k in WINDOW_METADATA
+        ]
+        result = pd.DataFrame(rows)[
+            [&quot;cob_date&quot;, &quot;report_name&quot;, &quot;indicator&quot;] + trendcols + assoccols + meta
+        ]
+        self.logger.info(
+            &quot;Trend output | report_indicator_pairs=%s | columns=%s&quot;,
+            len(result),
+            len(result.columns),
+        )
+        if len(self.logger.handlers) &gt; 1:
+            for period in PERIODS:
+                good = result[f&quot;{period}_status&quot;].eq(&quot;ok&quot;)
+                # Log the reference COBs once per period, rather than for every report.
+                reference = self._window(data, asof, period)
+                dates = sorted(
+                    reference[&quot;cob_date&quot;].dt.strftime(&quot;%Y-%m-%d&quot;).unique().tolist()
+                )
+                self.logger.info(
+                    &quot;Period=%s | required_observations=%s | successful_pairs=%s/%s | reference_COBs=%s | zscore_threshold=%s&quot;,
+                    period,
+                    self.windows.get(period, MINIMUM[period]),
+                    int(good.sum()),
+                    len(result),
+                    dates,
+                    self.anomaly_z_threshold,
+                )
+        return result
+
+<span class="code-line" id="code-Publication_Trendv2-get_heatmap_statistics">    def get_heatmap_statistics(self, history, dates, window):</span>
+        &quot;&quot;&quot;Use the same statistics as the trend result for each visible COB.&quot;&quot;&quot;
+        columns = [
+            &quot;cob_date&quot;,
+            &quot;report_name&quot;,
+            &quot;indicator&quot;,
+            &quot;daily&quot;,
+            &quot;mean&quot;,
+            &quot;std&quot;,
+            &quot;zscore&quot;,
+            &quot;status&quot;,
+        ]
+        if window not in PERIODS:
+            raise ValueError(f&quot;window must be one of {PERIODS}&quot;)
+        minimum = self.windows.get(window, MINIMUM[window])
+        rows = []
+        for (report, indicator), group in history.groupby(PAIR_COLUMNS, sort=True):
+            group = group.sort_values(&quot;cob_date&quot;)
+            current_rows = group.loc[group[&quot;cob_date&quot;].isin(dates)]
+            for current in current_rows.itertuples(index=False):
+                values = self._window(group, current.cob_date, window)[&quot;daily&quot;]
+                mean = std = score = None
+                status = &quot;Insufficient history&quot;
+                if len(values) &gt;= minimum:
+                    mean, std, score, flagged = self._score_baseline(
+                        values.to_numpy(dtype=float), current.daily
+                    )
+                    status = &quot;Flagged&quot; if flagged else &quot;Within range&quot;
+                rows.append(
+                    (
+                        current.cob_date,
+                        report,
+                        indicator,
+                        current.daily,
+                        mean,
+                        std,
+                        score,
+                        status,
+                    )
+                )
+        return pd.DataFrame(rows, columns=columns)
+
+<span class="code-line" id="code-Publication_Trendv2-generate_trend_parameters">    def generate_trend_parameters(self, as_of_date, months_to_load=3):</span>
+        return self.calculate_trend_parameters(
+            self.load_daily_data(as_of_date, months_to_load), as_of_date
+        )
+
+<span class="code-line" id="code-Publication_Trendv2-_month_business_days">    def _month_business_days(self, period):</span>
+        &quot;&quot;&quot;Business calendar: weekdays excluding configured exception COBs.
+
+        Supply organization holiday dates in EXCEPTION_COBS for exact matching.
+        &quot;&quot;&quot;
+        dates = pd.bdate_range(period.start_time, period.end_time)
+        return [
+            d.normalize()
+            for d in dates
+            if d.strftime(&quot;%Y-%m-%d&quot;) not in self.EXCEPTION_COBS
+        ]
+
+<span class="code-line" id="code-Publication_Trendv2-select_previous_month_cob">    def select_previous_month_cob(self, current_cob):</span>
+        &quot;&quot;&quot;Center-aligned business-day mapping from the original trend engine.
+
+        Extra current-month days repeat the central previous-month day;
+        extra previous-month days are skipped around the center.
+        &quot;&quot;&quot;
+        current = pd.Timestamp(current_cob).normalize()
+        current_days = self._month_business_days(current.to_period(&quot;M&quot;))
+        prior_days = self._month_business_days(current.to_period(&quot;M&quot;) - 1)
+        if current not in current_days:
+            raise ValueError(f&quot;Not a business COB: {current.date()}&quot;)
+        c = current_days.index(current)
+        nc = len(current_days)
+        np_ = len(prior_days)
+        if nc &gt;= np_:
+            extra = nc - np_
+            middle = (np_ + 1) // 2
+            p = c if c &lt; middle else max(middle, c - extra)
+        else:
+            extra = np_ - nc
+            middle = (np_ - extra) // 2
+            p = c if c &lt; middle else c + extra
+        p = max(0, min(p, np_ - 1))
+        selected = prior_days[p]
+        self.logger.info(
+            &quot;Previous-month COB mapping | current=%s | current bus_count=%s/%s | previous=%s | previous bus_count=%s/%s&quot;,
+            current.date(),
+            c + 1,
+            nc,
+            selected.date(),
+            p + 1,
+            np_,
+        )
+        self.logger.info(
+            &quot;Previous-month calendar COBs=%s&quot;,
+            [x.strftime(&quot;%Y-%m-%d&quot;) for x in prior_days],
+        )
+        return selected
+
+<span class="code-line" id="code-Publication_Trendv2-get_previous_month_comparison">    def get_previous_month_comparison(self, history, cob_date, comparison_cob=5):</span>
+        &quot;&quot;&quot;Return selected and prior current-month COB comparisons, per report/indicator.&quot;&quot;&quot;
+        asof = pd.Timestamp(cob_date).normalize()
+        current = history[
+            (history[&quot;cob_date&quot;].dt.to_period(&quot;M&quot;) == asof.to_period(&quot;M&quot;))
+            &amp; (history[&quot;cob_date&quot;] &lt;= asof)
+        ]
+        dates = sorted(current[&quot;cob_date&quot;].unique(), reverse=True)[
+            : int(comparison_cob)
+        ]
+        current = current[current[&quot;cob_date&quot;].isin(dates)].copy()
+        if current.empty:
+            return pd.DataFrame()
+        if &quot;bus_count&quot; not in current.columns:
+            raise ValueError(
+                &quot;The selected month&#x27;s workbook needs a bus_count column for comparison.&quot;
+            )
+        mapping = {pd.Timestamp(d): self.select_previous_month_cob(d) for d in dates}
+        current[&quot;previous_month_cob&quot;] = current[&quot;cob_date&quot;].map(mapping)
+        prior = history[[&quot;cob_date&quot;, &quot;report_name&quot;, &quot;indicator&quot;, &quot;daily&quot;]].rename(
+            columns={&quot;cob_date&quot;: &quot;previous_month_cob&quot;, &quot;daily&quot;: &quot;previous_month_daily&quot;}
+        )
+        current = current.merge(
+            prior,
+            on=[&quot;previous_month_cob&quot;, &quot;report_name&quot;, &quot;indicator&quot;],
+            how=&quot;left&quot;,
+            validate=&quot;many_to_one&quot;,
+        )
+        previous_days = self._month_business_days(asof.to_period(&quot;M&quot;) - 1)
+        day_numbers = {day: number for number, day in enumerate(previous_days, 1)}
+        current[&quot;previous_month_bus_count&quot;] = current[&quot;previous_month_cob&quot;].map(
+            day_numbers
+        )
+        current[&quot;previous_month_change&quot;] = (
+            current[&quot;daily&quot;] - current[&quot;previous_month_daily&quot;]
+        )
+        current[&quot;previous_month_change_pct&quot;] = (
+            100
+            * current[&quot;previous_month_change&quot;]
+            / current[&quot;previous_month_daily&quot;].abs().replace(0, float(&quot;nan&quot;))
+        )
+        self.logger.info(
+            &quot;Previous-month comparison current COBs=%s | previous COBs=%s&quot;,
+            sorted(current[&quot;cob_date&quot;].dt.strftime(&quot;%Y-%m-%d&quot;).unique().tolist()),
+            sorted(
+                current[&quot;previous_month_cob&quot;].dt.strftime(&quot;%Y-%m-%d&quot;).unique().tolist()
+            ),
+        )
+        return (
+            current[
+                [
+                    &quot;cob_date&quot;,
+                    &quot;report_name&quot;,
+                    &quot;indicator&quot;,
+                    &quot;bus_count&quot;,
+                    &quot;daily&quot;,
+                    &quot;previous_month_cob&quot;,
+                    &quot;previous_month_bus_count&quot;,
+                    &quot;previous_month_daily&quot;,
+                    &quot;previous_month_change&quot;,
+                    &quot;previous_month_change_pct&quot;,
+                ]
+            ]
+            .sort_values(
+                [&quot;cob_date&quot;, &quot;report_name&quot;, &quot;indicator&quot;], ascending=[False, True, True]
+            )
+            .reset_index(drop=True)
+        )
+
+<span class="code-line" id="code-Publication_Trendv2-run_trend_analysis">    def run_trend_analysis(</span>
+        self,
+        cob_date,
+        comparison_cob=5,
+        months_to_load=3,
+        trend_period=&quot;n_business_days&quot;,
+        *,
+        heatmap_cobs=None,
+    ):
+        self._log(pd.Timestamp(cob_date).normalize())
+        started = perf_counter()
+        self.logger.info(
+            &quot;START | cob_date=%s | version=%s | comparison_cob=%s | months_to_load=%s | trend_period=%s | windows=%s | minimum_observations=%s | zscore_threshold=%s | exception_COBs=%s | workbook_root=%s | log_file=%s&quot;,
+            cob_date,
+            self.version,
+            comparison_cob,
+            months_to_load,
+            trend_period,
+            self.windows,
+            MINIMUM,
+            self.anomaly_z_threshold,
+            sorted(self.EXCEPTION_COBS),
+            self.root_folder,
+            self.log_path,
+        )
+        try:
+            result = self._run_trend_analysis_impl(
+                cob_date, comparison_cob, months_to_load, heatmap_cobs
+            )
+        except Exception:
+            self.logger.exception(
+                &quot;FAILED | cob_date=%s | duration_seconds=%.3f&quot;,
+                cob_date,
+                perf_counter() - started,
+            )
+            raise
+        else:
+            self.logger.info(
+                &quot;SUCCESS | cob_date=%s | duration_seconds=%.3f | trend_rows=%s | history_rows=%s | comparison_rows=%s&quot;,
+                cob_date,
+                perf_counter() - started,
+                len(result[&quot;trend&quot;]),
+                len(result[&quot;history&quot;]),
+                len(result[&quot;comparison&quot;]),
+            )
+        finally:
+            self.close_logging()
+        return result
+
+<span class="code-line" id="code-Publication_Trendv2-_run_trend_analysis_impl">    def _run_trend_analysis_impl(</span>
+        self, cob_date, comparison_cob, months_to_load, heatmap_cobs=None
+    ):
+        history = self.load_daily_data(
+            cob_date, months_to_load, heatmap_cobs=heatmap_cobs
+        )
+        trend = self.calculate_trend_parameters(history, cob_date)
+        comparison = self.get_previous_month_comparison(
+            history, cob_date, comparison_cob
+        )
+        # Keep both sides of the merge as normalized datetime64, never string vs datetime.
+        trend[&quot;cob_date&quot;] = pd.to_datetime(
+            trend[&quot;cob_date&quot;], errors=&quot;raise&quot;
+        ).dt.normalize()
+        comparison[&quot;cob_date&quot;] = pd.to_datetime(
+            comparison[&quot;cob_date&quot;], errors=&quot;raise&quot;
+        ).dt.normalize()
+        today = comparison.loc[
+            comparison[&quot;cob_date&quot;] == pd.Timestamp(cob_date).normalize()
+        ].copy()
+        if not today.empty:
+            cols = [
+                &quot;cob_date&quot;,
+                &quot;report_name&quot;,
+                &quot;indicator&quot;,
+                &quot;previous_month_cob&quot;,
+                &quot;previous_month_bus_count&quot;,
+                &quot;previous_month_daily&quot;,
+                &quot;previous_month_change&quot;,
+                &quot;previous_month_change_pct&quot;,
+            ]
+            trend = trend.merge(
+                today[cols],
+                on=[&quot;cob_date&quot;, &quot;report_name&quot;, &quot;indicator&quot;],
+                how=&quot;left&quot;,
+                validate=&quot;one_to_one&quot;,
+            )
+            identity = [&quot;cob_date&quot;, &quot;report_name&quot;, &quot;indicator&quot;]
+            trend = trend[identity + [c for c in trend.columns if c not in identity]]
+        # Keep dates consistently typed within the calculation engine.
+        return {&quot;trend&quot;: trend, &quot;history&quot;: history, &quot;comparison&quot;: comparison}
+
+<span class="code-line" id="code-Publication_Trendv2-get_daily_pnl_distribution">    def get_daily_pnl_distribution(</span>
+        self, cob_date, occurrence, report_name, indicator, months_to_load=12
+    ):
+        asof = pd.Timestamp(cob_date).normalize()
+        history = self.load_daily_data(asof, months_to_load)
+        group = history[
+            (history[&quot;report_name&quot;] == report_name)
+            &amp; (history[&quot;indicator&quot;] == indicator)
+        ]
+        current = group[group[&quot;cob_date&quot;] == asof]
+        if current.empty:
+            raise ValueError(&quot;No selected COB for report and indicator&quot;)
+        window = self._window(group, asof, occurrence)
+        stats = self._stats(window, float(current.iloc[-1][&quot;daily&quot;]), occurrence)
+        avg = stats[f&quot;{occurrence}_avg&quot;]
+        std = stats[f&quot;{occurrence}_std&quot;]
+        threshold = self.anomaly_z_threshold
+        return {
+            &quot;cob_date&quot;: asof.strftime(&quot;%Y-%m-%d&quot;),
+            &quot;report_name&quot;: report_name,
+            &quot;indicator&quot;: indicator,
+            &quot;occurrence&quot;: occurrence,
+            &quot;current_daily&quot;: float(current.iloc[-1][&quot;daily&quot;]),
+            &quot;mean&quot;: avg,
+            &quot;std&quot;: std,
+            &quot;zscore&quot;: stats[f&quot;{occurrence}_zscore&quot;],
+            &quot;zscore_threshold&quot;: threshold,
+            &quot;lower_endpoint&quot;: avg - threshold * std if avg is not None else None,
+            &quot;upper_endpoint&quot;: avg + threshold * std if avg is not None else None,
+            &quot;historical_values&quot;: window[&quot;daily&quot;].tolist(),
+            &quot;status&quot;: stats[f&quot;{occurrence}_status&quot;],
+            &quot;period_start&quot;: stats[f&quot;{occurrence}_start&quot;],
+            &quot;period_end&quot;: stats[f&quot;{occurrence}_end&quot;],
+        }
+
+<span class="code-line" id="code-Publication_Trendv2-get_previous_daily_pnl">    def get_previous_daily_pnl(self, as_of_date, n, months_to_load=3, history=None):</span>
+        data = (
+            history
+            if history is not None
+            else self.load_daily_data(as_of_date, months_to_load)
+        )
+        data = data[data[&quot;cob_date&quot;] &lt;= pd.Timestamp(as_of_date)]
+        dates = sorted(data[&quot;cob_date&quot;].unique(), reverse=True)[:n]
+        selected = data[data[&quot;cob_date&quot;].isin(dates)].copy()
+        selected[&quot;cob_date&quot;] = selected[&quot;cob_date&quot;].dt.strftime(&quot;%Y-%m-%d&quot;)
+        cols = [pd.Timestamp(d).strftime(&quot;%Y-%m-%d&quot;) for d in dates]
+        return (
+            selected.pivot(
+                index=[&quot;report_name&quot;, &quot;indicator&quot;], columns=&quot;cob_date&quot;, values=&quot;daily&quot;
+            )
+            .reindex(columns=cols)
+            .reset_index()
+        )
+</code></pre></div></details>
+<details><summary>Heatmap_Trend.py</summary><div class="codebox"><div class="codehead"><span>Heatmap_Trend.py</span><div><button type="button" data-action="copy" aria-label="Copy Heatmap_Trend.py">Copy</button><button type="button" data-action="save" data-filename="Heatmap_Trend.py" aria-label="Save Heatmap_Trend.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Plotly charts and the shared daily P&amp;L pivot.&quot;&quot;&quot;
+
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.colors import qualitative
+
+
+<span class="code-line" id="code-Heatmap_Trend-generate_line_graph">def generate_line_graph(df, report_name, indicators=None, n_cobs=None):</span>
+    keys = [&quot;report_name&quot;, &quot;indicator&quot;]
+    date_cols = sorted(
+        (c for c in df.columns if c not in keys),
+        key=lambda x: pd.Timestamp(x),
+        reverse=True,
+    )
+    if n_cobs:
+        date_cols = date_cols[: int(n_cobs)]
+    data = df if report_name == &quot;All Reports&quot; else df[df[&quot;report_name&quot;] == report_name]
+    if indicators:
+        data = data[data[&quot;indicator&quot;].isin(indicators)]
+    fig = go.Figure()
+    for i, (_, r) in enumerate(data.sort_values(keys).iterrows()):
+        fig.add_trace(
+            go.Scatter(
+                x=date_cols,
+                y=[r[c] for c in date_cols],
+                mode=&quot;lines+markers&quot;,
+                name=f&quot;{r.report_name} | {r.indicator}&quot;,
+                line=dict(color=qualitative.Plotly[i % len(qualitative.Plotly)]),
+            )
+        )
+    fig.update_layout(
+        template=&quot;plotly_white&quot;,
+        xaxis_title=&quot;COB date&quot;,
+        yaxis_title=&quot;Daily P&amp;L (mEUR)&quot;,
+        hovermode=&quot;x unified&quot;,
+    )
+    return fig
+
+
+<span class="code-line" id="code-Heatmap_Trend-history_to_pivot">def history_to_pivot(history, as_of_date):</span>
+    df = history[history[&quot;cob_date&quot;] &lt;= pd.Timestamp(as_of_date)].copy()
+    df[&quot;cob_date&quot;] = df[&quot;cob_date&quot;].dt.strftime(&quot;%Y-%m-%d&quot;)
+    pivot = (
+        df.assign(daily=df[&quot;daily&quot;] / 1000)
+        .pivot(index=[&quot;report_name&quot;, &quot;indicator&quot;], columns=&quot;cob_date&quot;, values=&quot;daily&quot;)
+        .reset_index()
+    )
+    dates = sorted(
+        (c for c in pivot.columns if c not in (&quot;report_name&quot;, &quot;indicator&quot;)),
+        reverse=True,
+    )
+    return pivot[[&quot;report_name&quot;, &quot;indicator&quot;] + dates]
+
+
+<span class="code-line" id="code-Heatmap_Trend-generate_report_line_graph">def generate_report_line_graph(df, n_cobs=None):</span>
+    &quot;&quot;&quot;One line per report, summing the selected indicators for each COB.&quot;&quot;&quot;
+    keys = [&quot;report_name&quot;, &quot;indicator&quot;]
+    dates = sorted(
+        (c for c in df.columns if c not in keys), key=pd.Timestamp, reverse=True
+    )
+    if n_cobs:
+        dates = dates[: int(n_cobs)]
+    dates = list(reversed(dates))  # plot chronological left to right
+    grouped = df.groupby(&quot;report_name&quot;, as_index=False)[dates].sum(min_count=1)
+    fig = go.Figure()
+    for i, (_, r) in enumerate(grouped.iterrows()):
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=[r[d] for d in dates],
+                mode=&quot;lines+markers&quot;,
+                name=str(r[&quot;report_name&quot;]),
+                line=dict(color=qualitative.Plotly[i % len(qualitative.Plotly)]),
+            )
+        )
+    fig.update_layout(
+        title=&quot;Daily P&amp;L by Report&quot;,
+        template=&quot;plotly_white&quot;,
+        xaxis_title=&quot;COB date&quot;,
+        yaxis_title=&quot;Daily P&amp;L (mEUR)&quot;,
+        hovermode=&quot;x unified&quot;,
+    )
+    return fig
+
+
+<span class="code-line" id="code-Heatmap_Trend-generate_zscore_heatmap">def generate_zscore_heatmap(stats, dates):</span>
+    &quot;&quot;&quot;Display daily P&amp;L and signed z-score, with color based on score magnitude.&quot;&quot;&quot;
+    pairs = sorted(set(zip(stats[&quot;report_name&quot;], stats[&quot;indicator&quot;])))
+    date_labels = [date.strftime(&quot;%d %b %Y&quot;) for date in dates]
+    row_positions = {pair: i for i, pair in enumerate(pairs)}
+    column_positions = {date: i for i, date in enumerate(dates)}
+    scores = [[None] * len(dates) for _ in pairs]
+    labels = [[&quot;&quot;] * len(dates) for _ in pairs]
+    tooltips = [[&quot;&quot;] * len(dates) for _ in pairs]
+    bands = [
+        (&quot;Unavailable&quot;, &quot;#bfc5cd&quot;),
+        (&quot;−1 ≤ z ≤ 1&quot;, &quot;#dcf5dc&quot;),
+        (&quot;1 &lt; |z| ≤ 2&quot;, &quot;#83c98d&quot;),
+        (&quot;2 &lt; |z| ≤ 3&quot;, &quot;#b77916&quot;),
+        (&quot;|z| &gt; 3&quot;, &quot;#b91c1c&quot;),
+    ]
+
+<span class="code-line" id="code-Heatmap_Trend-amount">    def amount(value):</span>
+        return f&quot;{value / 1000:,.2f} mEUR&quot; if pd.notna(value) else &quot;—&quot;
+
+    for cell in stats.itertuples(index=False):
+        if cell.cob_date not in column_positions:
+            continue
+        row = row_positions[cell.report_name, cell.indicator]
+        column = column_positions[cell.cob_date]
+        if pd.notna(cell.zscore):
+            magnitude = abs(cell.zscore)
+            if magnitude &gt; 3:
+                color = 4
+            elif magnitude &gt; 2:
+                color = 3
+            elif magnitude &gt; 1:
+                color = 2
+            else:
+                color = 1
+            score_text = f&quot;{cell.zscore:+.2f}&quot;
+        elif cell.status == &quot;Flagged&quot;:
+            color = 0
+            score_text = &quot;Undefined (zero standard deviation)&quot;
+        else:
+            color = 0
+            score_text = &quot;—&quot;
+
+        scores[row][column] = color
+        label_score = score_text if pd.notna(cell.zscore) else &quot;—&quot;
+        labels[row][column] = f&quot;{cell.daily / 1000:+,.2f} mEUR&lt;br&gt;z = {label_score}&quot;
+        tooltips[row][column] = (
+            f&quot;Daily P&amp;L: {amount(cell.daily)}&lt;br&gt;&quot;
+            f&quot;Historical mean: {amount(cell.mean)}&lt;br&gt;&quot;
+            f&quot;Standard deviation: {amount(cell.std)}&lt;br&gt;&quot;
+            f&quot;Z-score: {score_text}&lt;br&gt;Status: {cell.status}&quot;
+        )
+
+    fig = go.Figure(
+        go.Heatmap(
+            x=date_labels,
+            y=[f&quot;{report} | {indicator}&quot; for report, indicator in pairs],
+            z=scores,
+            text=labels,
+            customdata=tooltips,
+            texttemplate=&quot;%{text}&quot;,
+            colorscale=[
+                [edge / len(bands), shade]
+                for index, (_, shade) in enumerate(bands)
+                for edge in (index, index + 1)
+            ],
+            zmin=-0.5,
+            zmax=len(bands) - 0.5,
+            xgap=3,
+            ygap=3,
+            hoverongaps=False,
+            colorbar=dict(
+                title=&quot;Z-score&quot;,
+                tickvals=list(range(len(bands))),
+                ticktext=[label for label, _ in bands],
+            ),
+            hovertemplate=&quot;&lt;b&gt;%{y}&lt;/b&gt; · %{x}&lt;br&gt;%{customdata}&lt;extra&gt;&lt;/extra&gt;&quot;,
+        )
+    )
+    fig.update_layout(
+        title=&quot;Global Markets | P&amp;L Heatmap&quot;,
+        template=&quot;plotly_white&quot;,
+        height=max(420, min(1500, 170 + len(pairs) * 42)),
+        xaxis=dict(
+            side=&quot;top&quot;,
+            type=&quot;category&quot;,
+            tickmode=&quot;array&quot;,
+            tickvals=date_labels,
+            ticktext=[date.strftime(&quot;%d %b&quot;) for date in dates],
+        ),
+        yaxis=dict(autorange=&quot;reversed&quot;, automargin=True),
+    )
+    return fig
+</code></pre></div></details>
+<details><summary>export_utils.py</summary><div class="codebox"><div class="codehead"><span>export_utils.py</span><div><button type="button" data-action="copy" aria-label="Copy export_utils.py">Copy</button><button type="button" data-action="save" data-filename="export_utils.py" aria-label="Save export_utils.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Excel export: mEUR, newest COB first, string dates, visible heatmap colours.&quot;&quot;&quot;
+
+from io import BytesIO
+
+import numpy as np
+import pandas as pd
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
+
+MONETARY_COLUMNS = {&quot;daily&quot;, &quot;previous_month_daily&quot;, &quot;previous_month_change&quot;}
+MONETARY_SUFFIXES = (&quot;_avg&quot;, &quot;_std&quot;, &quot;_min&quot;, &quot;_max&quot;, &quot;_slope&quot;, &quot;_change&quot;)
+
+
+<span class="code-line" id="code-export_utils-convert_to_meur">def convert_to_meur(frame):</span>
+    out = frame.copy()
+    for col in out.columns:
+        if (
+            col in MONETARY_COLUMNS or col.endswith(MONETARY_SUFFIXES)
+        ) and pd.api.types.is_numeric_dtype(out[col]):
+            out[col] = out[col] / 1000.0
+    return out
+
+
+<span class="code-line" id="code-export_utils-date_as_text">def date_as_text(series):</span>
+    &quot;&quot;&quot;Return ISO strings, not Excel date serials or pandas Timestamp objects.&quot;&quot;&quot;
+    return pd.to_datetime(series, errors=&quot;coerce&quot;).dt.strftime(&quot;%Y-%m-%d&quot;).fillna(&quot;&quot;)
+
+
+<span class="code-line" id="code-export_utils-_style_header">def _style_header(ws):</span>
+    for cell in ws[1]:
+        cell.fill = PatternFill(&quot;solid&quot;, fgColor=&quot;17365D&quot;)
+        cell.font = Font(bold=True, color=&quot;FFFFFF&quot;)
+        cell.alignment = Alignment(horizontal=&quot;center&quot;, vertical=&quot;center&quot;)
+    ws.row_dimensions[1].height = 30
+
+
+<span class="code-line" id="code-export_utils-_heat_colour">def _heat_colour(value, limit):</span>
+    &quot;&quot;&quot;Seven visible, symmetric red-neutral-green steps, centered on zero.&quot;&quot;&quot;
+    if not isinstance(value, (int, float, np.integer, np.floating)) or not np.isfinite(
+        value
+    ):
+        return None
+    scaled = float(value) / limit if limit else 0
+    if scaled &lt;= -0.66:
+        return &quot;9C1C24&quot;
+    if scaled &lt;= -0.33:
+        return &quot;D95757&quot;
+    if scaled &lt; -0.05:
+        return &quot;F5B7B1&quot;
+    if scaled &lt;= 0.05:
+        return &quot;F5F6F7&quot;
+    if scaled &lt; 0.33:
+        return &quot;B8E6CC&quot;
+    if scaled &lt; 0.66:
+        return &quot;59B989&quot;
+    return &quot;137547&quot;
+
+
+<span class="code-line" id="code-export_utils-make_excel">def make_excel(result):</span>
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine=&quot;openpyxl&quot;) as writer:
+        trend = convert_to_meur(result[&quot;trend&quot;]).drop(
+            columns=[&quot;mtd&quot;, &quot;ytd&quot;], errors=&quot;ignore&quot;
+        )
+        first = [&quot;cob_date&quot;, &quot;report_name&quot;, &quot;indicator&quot;, &quot;daily&quot;]
+        trend = trend[
+            [c for c in first if c in trend.columns]
+            + [c for c in trend.columns if c not in first]
+        ]
+        for c in trend.columns:
+            if c == &quot;cob_date&quot; or c.endswith((&quot;_cob&quot;, &quot;_start&quot;, &quot;_end&quot;)):
+                trend[c] = date_as_text(trend[c])
+        trend.to_excel(writer, index=False, sheet_name=&quot;Trend&quot;)
+        ws = writer.sheets[&quot;Trend&quot;]
+        ws.freeze_panes = &quot;E2&quot;
+        ws.auto_filter.ref = ws.dimensions
+        _style_header(ws)
+        for i, name in enumerate(trend.columns, 1):
+            ws.column_dimensions[get_column_letter(i)].width = (
+                27 if name in (&quot;report_name&quot;, &quot;indicator&quot;) else 17
+            )
+            if name == &quot;cob_date&quot; or name.endswith((&quot;_cob&quot;, &quot;_start&quot;, &quot;_end&quot;)):
+                for row in ws.iter_rows(min_row=2, min_col=i, max_col=i):
+                    row[0].number_format = &quot;@&quot;
+        if &quot;history&quot; in result and not result[&quot;history&quot;].empty:
+            from Heatmap_Trend import history_to_pivot
+
+            hist = result[&quot;history&quot;]
+            pivot = history_to_pivot(hist, pd.to_datetime(hist[&quot;cob_date&quot;]).max())
+            dates = sorted(
+                (c for c in pivot.columns if c not in (&quot;report_name&quot;, &quot;indicator&quot;)),
+                key=pd.Timestamp,
+                reverse=True,
+            )
+            pivot = pivot[[&quot;report_name&quot;, &quot;indicator&quot;] + dates]
+            pivot.to_excel(writer, index=False, sheet_name=&quot;Heatmap Data&quot;)
+            ws = writer.sheets[&quot;Heatmap Data&quot;]
+            ws.freeze_panes = &quot;C2&quot;
+            ws.auto_filter.ref = ws.dimensions
+            _style_header(ws)
+            ws.column_dimensions[&quot;A&quot;].width = 27
+            ws.column_dimensions[&quot;B&quot;].width = 20
+            ws.row_dimensions[1].height = 100
+            for i in range(3, ws.max_column + 1):
+                ws.column_dimensions[get_column_letter(i)].width = 11
+                header = ws.cell(1, i)
+                header.value = str(header.value)
+                header.number_format = &quot;@&quot;
+                header.alignment = Alignment(
+                    textRotation=90, horizontal=&quot;center&quot;, vertical=&quot;bottom&quot;
+                )
+            numeric = (
+                pivot[dates].apply(pd.to_numeric, errors=&quot;coerce&quot;).to_numpy(dtype=float)
+            )
+            finite = numeric[np.isfinite(numeric)]
+            limit = float(np.max(np.abs(finite))) if len(finite) else 1.0
+            limit = max(limit, 1e-12)
+            for row in ws.iter_rows(min_row=2, min_col=3):
+                for cell in row:
+                    colour = _heat_colour(cell.value, limit)
+                    if colour:
+                        cell.fill = PatternFill(&quot;solid&quot;, fgColor=colour)
+                    cell.number_format = &quot;#,##0.00;[Red](#,##0.00);–&quot;
+                    cell.alignment = Alignment(horizontal=&quot;center&quot;)
+    return output.getvalue()
+</code></pre></div></details>
+<details><summary>Trend_dashboard.py</summary><div class="codebox"><div class="codehead"><span>Trend_dashboard.py</span><div><button type="button" data-action="copy" aria-label="Copy Trend_dashboard.py">Copy</button><button type="button" data-action="save" data-filename="Trend_dashboard.py" aria-label="Save Trend_dashboard.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;Streamlit dashboard for Global Markets daily P&amp;L.&quot;&quot;&quot;
+
+import os
+from pathlib import Path
+
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+from export_utils import make_excel
+from Heatmap_Trend import (
+    generate_line_graph,
+    generate_report_line_graph,
+    generate_zscore_heatmap,
+    history_to_pivot,
+)
+from Publication_Trendv2 import ReportTrendAnalyzer
+
+TITLE = &quot;Global Markets | Trend Analysis&quot;
+WINDOW_LABELS = {
+    &quot;short&quot;: &quot;Short (5 COBs)&quot;,
+    &quot;long&quot;: &quot;Long (60 COBs)&quot;,
+    &quot;broad&quot;: &quot;Broad (100 COBs)&quot;,
+    &quot;month&quot;: &quot;Month&quot;,
+    &quot;quarter&quot;: &quot;Quarter&quot;,
+    &quot;fullyear&quot;: &quot;Full year&quot;,
+}
+ANOMALY_STATUSES = (&quot;Flagged&quot;, &quot;Within range&quot;, &quot;Insufficient history&quot;)
+
+
+@st.cache_data(ttl=300)
+<span class="code-line" id="code-Trend_dashboard-latest_daily_cob">def latest_daily_cob(root):</span>
+    return ReportTrendAnalyzer(root).get_latest_cob_by_version()[&quot;daily&quot;]
+
+
+@st.cache_data(ttl=300, show_spinner=&quot;Loading daily P&amp;L...&quot;)
+<span class="code-line" id="code-Trend_dashboard-load_trend">def load_trend(</span>
+    root,
+    cob,
+    comparison_cobs=5,
+    months=3,
+    period=&quot;n_business_days&quot;,
+    *,
+    heatmap_cobs=None,
+):
+    analyzer = ReportTrendAnalyzer(root)
+    return analyzer.run_trend_analysis(
+        cob, comparison_cobs, months, period, heatmap_cobs=heatmap_cobs
+    )
+
+
+<span class="code-line" id="code-Trend_dashboard-show_anomaly_overview">def show_anomaly_overview(stats, cob, window, threshold):</span>
+    st.subheader(&quot;Anomaly Overview&quot;)
+    st.caption(
+        f&quot;{cob:%d %b %Y} · {WINDOW_LABELS[window]} · Flagged at |z| ≥ {threshold:g}&quot;
+    )
+
+    overview = stats.loc[stats[&quot;cob_date&quot;].eq(cob)].copy()
+    counts = overview[&quot;status&quot;].value_counts()
+    for column, status in zip(st.columns(3), ANOMALY_STATUSES):
+        column.metric(status, counts.get(status, 0))
+    if st.toggle(&quot;Flagged only&quot;):
+        overview = overview.loc[overview[&quot;status&quot;].eq(&quot;Flagged&quot;)].copy()
+
+    money_columns = {
+        &quot;daily&quot;: &quot;Daily P&amp;L (mEUR)&quot;,
+        &quot;mean&quot;: &quot;Historical mean (mEUR)&quot;,
+        &quot;std&quot;: &quot;Standard deviation (mEUR)&quot;,
+    }
+    overview[list(money_columns)] = overview[list(money_columns)].div(1000)
+    headers = {
+        &quot;report_name&quot;: &quot;Report&quot;,
+        &quot;indicator&quot;: &quot;Indicator&quot;,
+        **money_columns,
+        &quot;zscore&quot;: &quot;Z-score&quot;,
+        &quot;status&quot;: &quot;Status&quot;,
+    }
+    numbers = [*money_columns.values(), &quot;Z-score&quot;]
+    st.dataframe(
+        overview[list(headers)].rename(columns=headers),
+        hide_index=True,
+        use_container_width=True,
+        column_config={
+            name: st.column_config.NumberColumn(format=&quot;%.2f&quot;) for name in numbers
+        },
+    )
+
+
+<span class="code-line" id="code-Trend_dashboard-show_line_graphs">def show_line_graphs(pivot, n_cobs):</span>
+    st.subheader(&quot;Daily P&amp;L by Report&quot;)
+    st.caption(
+        &quot;One line per selected report. Daily P&amp;L is summed across the selected indicators.&quot;
+    )
+    st.plotly_chart(generate_report_line_graph(pivot, n_cobs), use_container_width=True)
+    st.subheader(&quot;Daily P&amp;L by Report and Indicator&quot;)
+    st.plotly_chart(
+        generate_line_graph(pivot, &quot;All Reports&quot;, n_cobs=n_cobs),
+        use_container_width=True,
+    )
+
+
+<span class="code-line" id="code-Trend_dashboard-show_excel_export">def show_excel_export(root, cob):</span>
+    st.subheader(&quot;Save Trend Analysis&quot;)
+    with st.form(&quot;export&quot;):
+        date_column, comparison_column, months_column, period_column = st.columns(4)
+        export_cob = date_column.date_input(&quot;Export COB&quot;, cob.date())
+        comparison = comparison_column.number_input(
+            &quot;Comparison COBs&quot;, min_value=1, value=5
+        )
+        months = months_column.number_input(&quot;Months to load&quot;, min_value=1, value=3)
+        period = period_column.selectbox(
+            &quot;Trend period&quot;,
+            [&quot;n_business_days&quot;, &quot;current_quarter&quot;, &quot;current_year&quot;, &quot;all&quot;],
+        )
+        submitted = st.form_submit_button(&quot;Prepare Excel&quot;)
+
+    if submitted:
+        result = load_trend(root, str(export_cob), comparison, months, period)
+        st.session_state[&quot;export_bytes&quot;] = make_excel(result)
+        st.session_state[&quot;export_date&quot;] = str(export_cob)
+    if st.session_state.get(&quot;export_bytes&quot;):
+        st.download_button(
+            &quot;Download Excel (mEUR)&quot;,
+            st.session_state[&quot;export_bytes&quot;],
+            file_name=f&quot;publication_trend_{st.session_state[&#x27;export_date&#x27;]}.xlsx&quot;,
+            mime=&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;,
+        )
+    st.caption(
+        &quot;Excel includes all six trend windows. The export period is recorded on the first audited run for a COB.&quot;
+    )
+
+
+<span class="code-line" id="code-Trend_dashboard-show_threshold_analysis">def show_threshold_analysis(analyzer, trend, history, cob):</span>
+    st.subheader(&quot;Daily P&amp;L Threshold Analysis&quot;)
+    report_column, indicator_column, window_column = st.columns(3)
+    report = report_column.selectbox(&quot;Report&quot;, sorted(history[&quot;report_name&quot;].unique()))
+    report_history = history.loc[history[&quot;report_name&quot;].eq(report)]
+    indicator = indicator_column.selectbox(
+        &quot;Indicator&quot;, sorted(report_history[&quot;indicator&quot;].unique())
+    )
+    window = window_column.selectbox(&quot;Window&quot;, tuple(WINDOW_LABELS))
+    matches = trend.loc[
+        trend[&quot;report_name&quot;].eq(report) &amp; trend[&quot;indicator&quot;].eq(indicator)
+    ]
+    if matches.empty:
+        st.info(&quot;No trend result for selected report and indicator.&quot;)
+        return
+
+    row = matches.iloc[0]
+    if row[f&quot;{window}_status&quot;] != &quot;ok&quot;:
+        st.info(&quot;Insufficient historical observations.&quot;)
+        return
+
+    pair_history = report_history.loc[report_history[&quot;indicator&quot;].eq(indicator)]
+    reference = analyzer._window(pair_history, cob, window)
+    mean = row[f&quot;{window}_avg&quot;] / 1000
+    distance = analyzer.anomaly_z_threshold * row[f&quot;{window}_std&quot;] / 1000
+    markers = (
+        (mean, &quot;Mean&quot;, &quot;#2563eb&quot;),
+        (mean - distance, &quot;Lower threshold&quot;, &quot;#dc2626&quot;),
+        (mean + distance, &quot;Upper threshold&quot;, &quot;#dc2626&quot;),
+        (row[&quot;daily&quot;] / 1000, &quot;Current COB&quot;, &quot;#16a34a&quot;),
+    )
+    figure = go.Figure(go.Histogram(x=reference[&quot;daily&quot;] / 1000, name=&quot;Historical P&amp;L&quot;))
+    for value, label, colour in markers:
+        figure.add_vline(
+            x=value, line_dash=&quot;dash&quot;, line_color=colour, annotation_text=label
+        )
+    figure.update_layout(
+        template=&quot;plotly_white&quot;,
+        xaxis_title=&quot;Daily P&amp;L (mEUR)&quot;,
+        yaxis_title=&quot;Observations&quot;,
+    )
+    st.plotly_chart(figure, use_container_width=True)
+    st.caption(
+        f&quot;Reference: {row[f&#x27;{window}_start&#x27;]} to {row[f&#x27;{window}_end&#x27;]} (current COB excluded)&quot;
+    )
+
+
+<span class="code-line" id="code-Trend_dashboard-main">def main():</span>
+    st.set_page_config(page_title=TITLE, layout=&quot;wide&quot;)
+    st.title(TITLE)
+    demo_root = Path(__file__).resolve().parent / &quot;demo_data&quot;
+    default_root = str(demo_root) if demo_root.is_dir() else &quot;./data&quot;
+    root = st.sidebar.text_input(
+        &quot;Workbook root folder&quot;, os.getenv(&quot;TREND_ROOT&quot;, default_root)
+    )
+    st.sidebar.caption(f&quot;Calculation logs: {(Path(root) / &#x27;logs&#x27;).resolve()}&quot;)
+
+    recent = latest_daily_cob(root)
+    if recent is None:
+        st.warning(&quot;No Daily COB found. Check workbook root.&quot;)
+        return
+
+    report_column, indicator_column, count_column, date_column = st.columns(
+        [3, 3, 1.4, 1.8]
+    )
+    cob = pd.Timestamp(
+        date_column.date_input(&quot;COB Date (as-of)&quot;, value=pd.Timestamp(recent).date())
+    )
+    n_cobs = count_column.number_input(
+        &quot;Previous COBs&quot;, min_value=1, max_value=250, value=10
+    )
+    result = load_trend(
+        root, cob.date().isoformat(), max(5, n_cobs), heatmap_cobs=n_cobs
+    )
+    history = result[&quot;history&quot;]
+
+    report_options = sorted(history[&quot;report_name&quot;].unique())
+    reports = report_column.multiselect(
+        &quot;Reports&quot;, report_options, default=report_options
+    )
+    report_history = history.loc[history[&quot;report_name&quot;].isin(reports)]
+    indicator_options = sorted(report_history[&quot;indicator&quot;].unique())
+    indicators = indicator_column.multiselect(
+        &quot;Indicators&quot;, indicator_options, default=indicator_options
+    )
+    selected_history = report_history.loc[report_history[&quot;indicator&quot;].isin(indicators)]
+    if selected_history.empty:
+        st.info(&quot;Select at least one report and indicator.&quot;)
+        return
+
+    st.caption(f&quot;Latest Daily COB: {recent} | P&amp;L values: mEUR&quot;)
+    window_column = st.columns(3)[0]
+    window = window_column.selectbox(
+        &quot;Trend window&quot;, tuple(WINDOW_LABELS), format_func=WINDOW_LABELS.get
+    )
+    dates = pd.DatetimeIndex(history[&quot;cob_date&quot;].drop_duplicates().nlargest(n_cobs))
+    analyzer = ReportTrendAnalyzer(root)
+    stats = analyzer.get_heatmap_statistics(selected_history, dates, window)
+    threshold = analyzer.anomaly_z_threshold
+
+    heatmap, anomaly, lines, export, distribution = st.tabs(
+        [
+            &quot;Heatmap&quot;,
+            &quot;Anomaly Overview&quot;,
+            &quot;Line Graphs&quot;,
+            &quot;Save File&quot;,
+            &quot;Threshold Analysis&quot;,
+        ]
+    )
+    with heatmap:
+        st.caption(
+            &quot;Cells show daily P&amp;L in mEUR and the signed z-score. Colour shows the magnitude of the z-score.&quot;
+        )
+        if stats.empty:
+            st.info(
+                &quot;No P&amp;L observations for the selected reports and indicators in these COBs.&quot;
+            )
+        else:
+            st.plotly_chart(
+                generate_zscore_heatmap(stats, dates),
+                use_container_width=True,
+            )
+    with anomaly:
+        show_anomaly_overview(stats, cob, window, threshold)
+    with lines:
+        # Keep the dashboard-wide COB range even if a selected pair has gaps.
+        pivot = history_to_pivot(history, cob)
+        pivot = pivot.loc[
+            pivot[&quot;report_name&quot;].isin(reports) &amp; pivot[&quot;indicator&quot;].isin(indicators)
+        ]
+        show_line_graphs(pivot, n_cobs)
+    with export:
+        show_excel_export(root, cob)
+    with distribution:
+        show_threshold_analysis(analyzer, result[&quot;trend&quot;], selected_history, cob)
+
+
+if __name__ == &quot;__main__&quot;:
+    try:
+        main()
+    except Exception as exc:
+        st.error(f&quot;Unable to load dashboard: {exc}&quot;)
+</code></pre></div></details>
+<details><summary>run_trend.py</summary><div class="codebox"><div class="codehead"><span>run_trend.py</span><div><button type="button" data-action="copy" aria-label="Copy run_trend.py">Copy</button><button type="button" data-action="save" data-filename="run_trend.py" aria-label="Save run_trend.py">Save file</button></div></div><pre tabindex="0"><code>&quot;&quot;&quot;CLI entrypoint; e.g. python run_trend.py --root /data --cob-date 2027-01-05.&quot;&quot;&quot;
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+from export_utils import make_excel
+from Publication_Trendv2 import ReportTrendAnalyzer
+
+
+<span class="code-line" id="code-run_trend-main">def main():</span>
+    parser = argparse.ArgumentParser(
+        description=&quot;Run Publication Trend analysis without Streamlit&quot;
+    )
+    parser.add_argument(
+        &quot;--root&quot;,
+        required=True,
+        help=&quot;Root directory containing YYYY/Flat_Conso_Reports_Mon.xlsx&quot;,
+    )
+    parser.add_argument(
+        &quot;--cob-date&quot;,
+        help=&quot;YYYY-MM-DD. Defaults to the latest COB for the selected version.&quot;,
+    )
+    parser.add_argument(
+        &quot;--version&quot;, default=&quot;Daily&quot;, choices=[&quot;Daily&quot;, &quot;Flash&quot;, &quot;Final&quot;]
+    )
+    parser.add_argument(&quot;--comparison-cob&quot;, type=int, default=5)
+    parser.add_argument(&quot;--months-to-load&quot;, type=int, default=3)
+    parser.add_argument(
+        &quot;--trend-period&quot;,
+        default=&quot;n_business_days&quot;,
+        choices=[&quot;n_business_days&quot;, &quot;current_quarter&quot;, &quot;current_year&quot;, &quot;all&quot;],
+        help=&quot;Audit label. The workbook contains all six trend windows.&quot;,
+    )
+    parser.add_argument(
+        &quot;--output&quot;, help=&quot;Output XLSX path; defaults to trend_&lt;version&gt;_&lt;date&gt;.xlsx&quot;
+    )
+    args = parser.parse_args()
+    if args.comparison_cob &lt; 1 or args.months_to_load &lt; 1:
+        parser.error(&quot;comparison-cob and months-to-load must be positive&quot;)
+    analyzer = ReportTrendAnalyzer(args.root, version=args.version)
+    cob = args.cob_date or analyzer.get_latest_cob_by_version()[args.version.lower()]
+    if cob is None:
+        parser.error(&quot;No COB found for selected version&quot;)
+    cob = pd.Timestamp(cob).strftime(&quot;%Y-%m-%d&quot;)
+    output = Path(args.output or f&quot;trend_{args.version.lower()}_{cob}.xlsx&quot;)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    result = analyzer.run_trend_analysis(
+        cob, args.comparison_cob, args.months_to_load, args.trend_period
+    )
+    output.write_bytes(make_excel(result))
+    print(
+        f&quot;Created {output.resolve()} | {len(result[&#x27;trend&#x27;])} trend rows | {len(result[&#x27;comparison&#x27;])} comparison rows&quot;
+    )
+
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre></div></details>
+<details><summary>requirements.txt</summary><div class="codebox"><div class="codehead"><span>requirements.txt</span><div><button type="button" data-action="copy" aria-label="Copy requirements.txt">Copy</button><button type="button" data-action="save" data-filename="requirements.txt" aria-label="Save requirements.txt">Save file</button></div></div><pre tabindex="0"><code>pandas&gt;=2.0
+numpy&gt;=1.24
+openpyxl&gt;=3.1
+streamlit&gt;=1.35
+plotly&gt;=5.20
+</code></pre></div></details>
+<details><summary>README.md</summary><div class="codebox"><div class="codehead"><span>README.md</span><div><button type="button" data-action="copy" aria-label="Copy README.md">Copy</button><button type="button" data-action="save" data-filename="README.md" aria-label="Save README.md">Save file</button></div></div><pre tabindex="0"><code># Reporting Trends
+
+Run these commands from the extracted `Trends/` folder.
+
+```sh
+python -m pip install -r requirements.txt
+python -m streamlit run Trend_dashboard.py
+```
+
+The dashboard opens with the included synthetic data. Set **Workbook root
+folder** in the sidebar or set the `TREND_ROOT` environment variable to use
+your own workbooks.
+
+```sh
+python run_trend.py --root demo_data --version Daily --cob-date 2026-11-25 --output demo_trend.xlsx
+```
+
+## Try the demo
+
+For **25 November 2026**, select **Short (5 COBs)**. Expect these results:
+
+| Report | Indicator | Daily P&amp;L (mEUR) | Z-score | Status |
+| --- | --- | ---: | ---: | --- |
+| Credit | Net P&amp;L | +0.25 | — | Insufficient history |
+| Equities | Net P&amp;L | −2.50 | −2.64 | Flagged |
+| FX | Trading P&amp;L | +0.10 | +0.25 | Within range |
+| Rates | Net P&amp;L | +3.00 | +3.16 | Flagged |
+
+The data is synthetic. To regenerate it, save and run the generator from the
+companion HTML guide in this folder.
+
+## Workbook format
+
+Put monthly workbooks in `&lt;root&gt;/YYYY/Flat_Conso_Reports_Mon.xlsx`.
+The first sheet needs `cob_date`, `version`, `report_name`, `indicator`,
+`daily` in kEUR, and `bus_count` for the previous-month comparison. Each
+COB, report, and indicator key must be unique within a version.
+
+The calculation excludes the COB under evaluation from its own baseline.
+Previous-month dates are aligned by business-day position, with adjustments
+near the middle when the months have different lengths. The calendar uses
+weekdays and the dates in `ReportTrendAnalyzer.EXCEPTION_COBS`. For production,
+check those dates against the official reporting calendar.
+
+## Source files
+
+| File | Role |
+| --- | --- |
+| `Publication_Trendv2.py` | Excel loading, scoring, comparisons and audit logs |
+| `Heatmap_Trend.py` | Plotly charts and daily P&amp;L pivot |
+| `Trend_dashboard.py` | Streamlit controls, five tabs and downloads |
+| `export_utils.py` | Excel sheets, units and formatting |
+| `run_trend.py` | Command-line entry point |
+| `requirements.txt` | Python dependencies |
+
+Both entry points use the same analyzer. The dashboard heatmap uses z-score
+colours and the Excel heatmap uses P&amp;L magnitude. The Excel workbook includes
+all six trend windows. The export period option is an audit label. Each COB
+writes one audit file under `&lt;root&gt;/logs/`, when that file is first created.
+</code></pre></div></details>
+</section>
+</main></div>
+<footer>Reporting Trends · Architecture and build guide for the dashboard with sample data</footer>
+<script>
+document.addEventListener('click', async (event) => {
+  const targetLink = event.target.closest('a[data-reveal]');
+  if (targetLink) {
+    const destination = document.getElementById(targetLink.hash.slice(1));
+    if (destination) {
+      const panel = destination.closest('details');
+      if (panel) panel.open = true;
+      if (destination.classList.contains('code-line')) {
+        event.preventDefault();
+        window.history.replaceState(null, '', targetLink.hash);
+        const codePane = destination.closest('pre');
+        codePane.scrollTop = destination.offsetTop - codePane.offsetTop + codePane.scrollTop - 12;
+        destination.scrollIntoView({block: 'center', inline: 'nearest'});
+      }
+    }
+  }
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+  const text = button.closest('.codebox').querySelector('pre code').textContent;
+  if (button.dataset.action === 'save') {
+    const url = URL.createObjectURL(new Blob([text], {type:'text/plain;charset=utf-8'}));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = button.dataset.filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+  const original = button.textContent;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const field = document.createElement('textarea');
+      field.value = text;
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.append(field);
+      field.select();
+      const copied = document.execCommand('copy');
+      field.remove();
+      button.focus();
+      if (!copied) throw new Error('Copy unavailable');
+    }
+    button.textContent = 'Copied';
+  } catch {
+    button.textContent = 'Select code to copy';
+  }
+  setTimeout(() => { button.textContent = original; }, 1600);
+});
+</script>
+</body>
+</html>
