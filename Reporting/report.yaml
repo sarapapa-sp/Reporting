@@ -1,0 +1,67 @@
+# Paths are relative to the reporting project root.
+# The caller supplies the DataFrame, report date, and version to build_report.
+id: global_markets
+title: Global Markets
+mapping: "{config_directory}/mapping.json"
+config_directory: "config/{config_version}/{report_id}"
+
+versions:
+  Daily:
+    config_version: Daily
+    suffix: ""
+  V1:
+    config_version: EOM
+    suffix: "_V1"
+  V2:
+    config_version: EOM
+    suffix: "_V2"
+
+output:
+  directory: "reports/{report_id}/{config_version}/{date:%Y/%m/%d}"
+  section_json: "{section_id}_{date:%Y%m%d}{suffix}.json"
+  workbook: "{report_id}_{date:%Y%m%d}{suffix}.xlsx"
+  web_index: "index{suffix}.json"
+
+excel:
+  defaults:
+    sheet_name: Markets
+
+# List order is the display order. Each title supplies create_report's report_title.
+# Each config filename is relative to the selected config_directory.
+sections:
+  - id: regional_summary
+    title: Regional Summary
+    config: regional_summary.yaml
+    excel:
+      header_text: Region
+      show_grand_total: true
+      grand_total_color: green
+
+  - id: desk_detail
+    title: Desk Detail
+    config: desk_detail.yaml
+    filters:
+      - column: Desk
+        operator: in
+        values: [HKG, Tokyo]
+    excel:
+      header_text: Desk
+      collapse_hierarchy: true
+      collapse_from_root: 2
+
+  - id: risk_summary
+    title: Risk Summary
+    config: risk_summary.yaml
+    filters:
+      - column: Region
+        operator: in
+        values: [Asia, Japan, China, Eur]
+      - column: Desk
+        operator: not_in
+        values: [Internal, Test]
+    excel:
+      sheet_name: Risk
+      # Optional Excel banner; row_number is the absolute worksheet row (1-based).
+      merged_heading: {colfrom: C, colto: H, row_number: 2, text: Risk Summary}
+      header_text: Risk category
+      show_grand_total: true
